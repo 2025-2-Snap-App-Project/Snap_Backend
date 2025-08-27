@@ -1,0 +1,4 @@
+flask
+ultralytics
+google-cloud-vision
+openai
