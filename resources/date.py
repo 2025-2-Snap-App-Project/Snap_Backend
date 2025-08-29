@@ -90,7 +90,7 @@ class DateResource(Resource):
             return{
                 "success" : True,
                 "status" : 200,
-                "message" : "상세 조회 성공",
+                "message" : "리스트 조회 성공",
                 "data" : filtered_list
             }, 200
     
@@ -119,7 +119,11 @@ class DateResource(Resource):
                 connection.close()
                 return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
     
-            return {"result" : "success"}, 200
+            return{
+                "success" : True,
+                "status" : 200,
+                "message" : "보관 장소 수정 성공"
+            }, 200
         
         # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
         if 'is_favorite' in data:
@@ -143,7 +147,11 @@ class DateResource(Resource):
                 connection.close()
                 return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
     
-            return {"result" : "success"}, 200
+            return{
+                "success" : True,
+                "status" : 200,
+                "message" : "즐겨찾기 업데이트 성공"
+            }, 200
     
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
@@ -170,4 +178,8 @@ class DateResource(Resource):
             connection.close()
             return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
  
-        return {"result" : "success"}, 200
+        return{
+            "success" : True,
+            "status" : 200,
+            "message" : "제품 삭제 성공"
+        }, 200
