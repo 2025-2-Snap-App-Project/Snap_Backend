@@ -75,6 +75,6 @@ class AnalyzeResource(Resource):
         return{
             "success" : True,
             "status" : 200,
-            "message" : "이미지 업로드 성공",
+            "message" : "요청이 성공적으로 처리되었습니다.",
             "data" : result
         }, 200
