@@ -16,6 +16,13 @@ class AnalyzeResource(Resource):
             image_path = "./image/" + image.filename
             image.save(image_path)
 
+        # YOLO 탐지 수행
+
+        # OCR 수행
+
+        # 생성형 AI 실행
+
+        # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
         product_name = "product_name_sample"
         expiration_date = "20200101"
         summary = "summary_sample"
