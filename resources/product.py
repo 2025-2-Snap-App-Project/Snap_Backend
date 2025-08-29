@@ -15,7 +15,7 @@ class ProductsResource(Resource):
                     values
                         (%s,%s,%s,%s);
                     '''
-            record = (data['purchase_id'], data['device_id'], data['storage_location'], False)
+            record = (purchase_id, data['device_id'], data['storage_location'], False)
             cursor = connection.cursor()
             cursor.execute(query, record)
             connection.commit()
