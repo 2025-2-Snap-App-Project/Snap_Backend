@@ -20,7 +20,7 @@ app = Flask(__name__)
 # restfulAPI 생성
 api = Api(app)
 api.add_resource(UserResource, '/user') # 로그인, 회원 탈퇴
-api.add_resource(AnalyzeResource, "/analyze", "/analyze/<string:purchase_id>") # 촬영하기 - 이미지 분석 진행
+api.add_resource(AnalyzeResource, "/analyze") # 촬영하기 - 이미지 분석 진행
 api.add_resource(ProductsResource, '/products/<string:purchase_id>') # 촬영하기 - 제품 보관하기
 api.add_resource(DateResource, "/date", "/date/<string:purchase_id>") # 소비기한 메뉴
 
