@@ -105,20 +105,6 @@ class DateResource(Resource):
                 cursor = connection.cursor(dictionary=True)
                 cursor.execute(query, (purchase_id, device_id))
                 result = cursor.fetchone()
-
-                expirateion_date = result.get('expiration_date')
-                if expirateion_date:
-                    result['expiration_date'] = expirateion_date.strftime("%Y.%m.%d")
-
-                summary_str = result.get('summary')
-                if summary_str:
-                    summary_list = []
-                    for s in summary_str.split('.'):
-                        s = s.strip()
-                        if s != '':
-                            summary_list.append(s)
-                    result['summary'] = summary_list
-                
                 cursor.close()
                 connection.close()
 
