@@ -53,6 +53,8 @@ class AnalyzeResource(Resource):
                     '''
             record3 = (product_id, expiration_date, summary, ingredients)
             cursor.execute(query3, record3)
+            item_id = cursor.lastrowid
+            result = [item_id, product_name, expiration_date, ingredients, summary]
 
             connection.commit()
             cursor.close()
@@ -68,5 +70,5 @@ class AnalyzeResource(Resource):
             "success" : True,
             "status" : 200,
             "message" : "이미지 업로드 성공",
-            "data" : ""
+            "data" : result
         }, 200
