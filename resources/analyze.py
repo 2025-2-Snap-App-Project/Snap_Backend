@@ -1,4 +1,5 @@
 from flask import request
+from flask import json
 from flask_restful import Resource
 import mysql.connector
 import os
@@ -60,7 +61,7 @@ class AnalyzeResource(Resource):
             record3 = (product_id, expiration_date, summary, ingredients)
             cursor.execute(query3, record3)
             item_id = cursor.lastrowid
-            result = [item_id, product_name, expiration_date, ingredients, summary]
+            result_dict = {"item_id" : item_id, "product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
             connection.commit()
             cursor.close()
@@ -76,5 +77,5 @@ class AnalyzeResource(Resource):
             "success" : True,
             "status" : 200,
             "message" : "요청이 성공적으로 처리되었습니다.",
-            "data" : result
+            "data" : result_dict
         }, 200
