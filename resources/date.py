@@ -40,7 +40,7 @@ class DateResource(Resource):
                 "success" : True,
                 "status" : 200,
                 "message" : "상세 조회 성공",
-                "date" : result
+                "data" : result
             }, 200
 
         # 소비기한 - 소비기한 리스트 조회 ✅
@@ -91,7 +91,7 @@ class DateResource(Resource):
                 "success" : True,
                 "status" : 200,
                 "message" : "상세 조회 성공",
-                "date" : filtered_list
+                "data" : filtered_list
             }, 200
     
     
