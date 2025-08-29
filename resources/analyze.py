@@ -9,7 +9,6 @@ class AnalyzeResource(Resource):
     def post(self):
         if 'image[]' not in request.files:
             return 'Image is missing', 404
-        device_id = request.form['device_id']
         images = request.files.getlist("image[]")
         os.makedirs("./image/", exist_ok=True)
 
