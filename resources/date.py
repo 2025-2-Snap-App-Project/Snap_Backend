@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
+from datetime import datetime
 
 class DateResource(Resource):
     def get(self, purchase_id=None):
@@ -42,9 +43,57 @@ class DateResource(Resource):
                 "date" : result
             }, 200
 
-        # 소비기한 - 소비기한 리스트 조회 ✖️
+        # 소비기한 - 소비기한 리스트 조회 ✅
         else:
-            return
+            device_id = request.args.get('device_id')
+            category = request.args.get('category')
+            
+            try:
+                connection = get_connection()
+                query = '''
+                    select 
+                        ProductItem.item_id,
+                        Product.product_name,
+                        ProductItem.expiration_date,
+                        Purchase.is_favorite
+                    from Purchase
+                    join ProductItem on Purchase.purchase_id = ProductItem.item_id
+                    join Product on ProductItem.product_id = Product.product_id
+                    where Purchase.device_id = %s;
+                '''
+                record = (device_id, )
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute(query, record)
+                result_list = cursor.fetchall()
+                filtered_list = []
+
+                for result in result_list:
+                    now_date = datetime.now()
+                    db_date = datetime.strptime(result['expiration_date'], "%Y%m%d")
+                    day_diff = (now_date - db_date).days
+                    if category == '날짜 지남' and day_diff < 0:
+                        filtered_list.append(result)
+                    elif category == '기한 임박' and day_diff < 7:
+                        filtered_list.append(result)
+                    elif category == '기한 여유' and day_diff < 14:
+                        filtered_list.append(result)
+
+                cursor.close()
+                connection.close()
+
+            except mysql.connector.Error as e :
+                print(e)
+                cursor.close()
+                connection.close()
+                return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
+    
+            return{
+                "success" : True,
+                "status" : 200,
+                "message" : "상세 조회 성공",
+                "date" : filtered_list
+            }, 200
+    
     
     def patch(self, purchase_id):
         data = request.get_json()
