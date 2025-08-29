@@ -17,29 +17,52 @@ class AnalyzeResource(Resource):
             image_path = "./image/" + image.filename
             image.save(image_path)
 
-        product_id = "product_id_sample"
         product_name = "product_name_sample"
-        item_id = "item_id_sample"
-        expiration_date = "expiration_date_sample"
+        expiration_date = "20200101"
         summary = "summary_sample"
         ingredients = "ingredients_sample"
 
-        # try :
-        #     connection = get_connection()
-        #     query = '''
-        #             '''
-        #     record = (product_id, product_name)
-        #     cursor = connection.cursor()
-        #     cursor.execute(query, record)
-        #     connection.commit()
-        #     cursor.close()
-        #     connection.close()
+        try :
+            connection = get_connection()
+            cursor = connection.cursor(dictionary=True)
 
-        # except mysql.connector.Error as e :
-        #     print(e)
-        #     cursor.close()
-        #     connection.close()
-        #     return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
+            query1 = '''
+                        select *
+                        from Product
+                        where product_name = %s;
+                    '''
+            record1 = (product_name, )
+            cursor.execute(query1, record1)
+            result_list = cursor.fetchall()
+
+            if len(result_list) == 0:
+                query2 = '''
+                        insert into Product (product_name)
+                        values (%s);
+                        '''
+                record2 = (product_name,)
+                cursor.execute(query2, record2)
+                product_id = cursor.lastrowid
+            else:
+                result = result_list[0]
+                product_id = result['product_id']
+
+            query3 = '''
+                    insert into ProductItem (product_id, expiration_date, summary, ingredients)
+                    values (%s, %s, %s, %s);
+                    '''
+            record3 = (product_id, expiration_date, summary, ingredients)
+            cursor.execute(query3, record3)
+
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+        except mysql.connector.Error as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
  
         return{
             "success" : True,
