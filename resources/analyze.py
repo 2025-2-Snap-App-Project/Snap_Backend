@@ -7,12 +7,15 @@ from mysql_connection import get_connection
 # 촬영하기 - 이미지 분석 진행 ✖️
 class AnalyzeResource(Resource):
     def post(self):
-        if 'image' not in request.files:
+        if 'image[]' not in request.files:
             return 'Image is missing', 404
         device_id = request.form['device_id']
-        image = request.files['image']
-        image_path = "./image/" + image.filename
-        image.save(image_path)
+        images = request.files.getlist("image[]")
+        os.makedirs("./image/", exist_ok=True)
+
+        for image in images:
+            image_path = "./image/" + image.filename
+            image.save(image_path)
 
         product_id = "product_id_sample"
         product_name = "product_name_sample"
