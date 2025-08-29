@@ -28,4 +28,8 @@ class ProductsResource(Resource):
             connection.close()
             return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
  
-        return {"result" : "success"}, 200
+        return{
+            "success" : True,
+            "status" : 200,
+            "message" : "보관 장소 등록 성공"
+        }, 200
