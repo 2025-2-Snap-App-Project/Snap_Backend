@@ -28,7 +28,11 @@ class UserResource(Resource) :
             connection.close()
             return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
  
-        return {"result" : "success"}, 200
+        return{
+            "success" : True,
+            "status" : 200,
+            "message" : "로그인 성공"
+        }, 200
     
     # 회원 탈퇴 ✅
     def delete(self) :
@@ -53,4 +57,8 @@ class UserResource(Resource) :
             connection.close()
             return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
  
-        return {"result" : "success"}, 200
+        return{
+            "success" : True,
+            "status" : 200,
+            "message" : "회원탈퇴 성공"
+        }, 200
