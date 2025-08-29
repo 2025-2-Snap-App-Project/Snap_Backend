@@ -3,6 +3,7 @@ from flask import json
 from flask_restful import Resource
 import mysql.connector
 import os
+import uuid
 from mysql_connection import get_connection
 
 # 촬영하기 - 이미지 분석 진행 ✖️
@@ -14,7 +15,7 @@ class AnalyzeResource(Resource):
         os.makedirs("./image/", exist_ok=True)
 
         for image in images:
-            image_path = "./image/" + image.filename
+            image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
             image.save(image_path)
 
         # YOLO 탐지 수행
