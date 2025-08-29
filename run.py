@@ -1,7 +1,10 @@
 # .\venv\Scripts\activate 로 venv 활성화
 from flask import Flask, request, jsonify
 from flask_restful import Api
-from resources.snapDB import UserResource, ProductsResource, DateResource, AnalyzeResource
+from resources.user import UserResource
+from resources.product import ProductsResource
+from resources.date import DateResource
+from resources.analyze import AnalyzeResource
 
 from ultralytics import YOLO
 from PIL import Image
