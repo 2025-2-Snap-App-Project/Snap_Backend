@@ -8,12 +8,11 @@ class ProductsResource(Resource):
     def post(self, purchase_id):
         data = request.get_json()
         if 'device_id' not in data or 'storage_location' not in data or purchase_id == None :
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
         
 
         try :
@@ -35,23 +34,21 @@ class ProductsResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
 
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
          
         return{
             "success" : True,
@@ -63,12 +60,11 @@ class ProductsResource(Resource):
     def patch(self, purchase_id):
         data = request.get_json()
         if purchase_id == None or 'device_id' not in data or 'storage_location' not in data:
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
 
         try :
             connection = get_connection()
@@ -82,12 +78,11 @@ class ProductsResource(Resource):
             cursor.execute(query, record)
 
             if cursor.rowcount == 0:
-                response = {
+                return {
                     "error_code": 404,
                     "description": "Not Found",
                     "message": "수정할 제품을 찾을 수 없음"
-                }
-                return jsonify(response), 404
+                }, 404
             
             connection.commit()
             cursor.close()
@@ -97,23 +92,21 @@ class ProductsResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
 
 
         return{

@@ -11,12 +11,11 @@ class DateListResource(Resource):
         category = request.args.get('category')
 
         if device_id == None or category == None:
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
         
         try:
             connection = get_connection()
@@ -55,23 +54,21 @@ class DateListResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
 
         return{
             "success" : True,
@@ -84,12 +81,11 @@ class DateListResource(Resource):
     def delete(self):
         data = request.get_json()
         if 'device_id' or 'purchase_id' not in data:
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
 
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_id')
@@ -107,12 +103,11 @@ class DateListResource(Resource):
             connection.commit()
 
             if cursor.rowcount == 0:
-                response = {
+                return {
                     "error_code": 404,
                     "description": "Not Found",
                     "message": "삭제할 제품을 찾을 수 없음"
-                }
-                return jsonify(response), 404
+                }, 404
             
             cursor.close()
             connection.close()
@@ -121,23 +116,21 @@ class DateListResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
  
         return{
             "success" : True,
@@ -151,12 +144,11 @@ class DateItemResource(Resource):
         device_id = request.args.get('device_id')
 
         if device_id == None or purchase_id == None:
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
 
         try:
             connection = get_connection()
@@ -177,12 +169,11 @@ class DateItemResource(Resource):
             cursor.execute(query, (purchase_id, device_id))
 
             if cursor.rowcount == 0:
-                response = {
+                return {
                     "error_code": 404,
                     "description": "Not Found",
                     "message": "해당 제품을 찾을 수 없음"
-                }
-                return jsonify(response), 404
+                }, 404
 
             result = cursor.fetchone()
             cursor.close()
@@ -192,23 +183,21 @@ class DateItemResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
 
         return{
             "success" : True,
@@ -222,12 +211,11 @@ class DateItemResource(Resource):
         data = request.get_json()
 
         if purchase_id == None or 'device_id' not in data or 'is_favorite' not in data:
-            response = {
+            return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
-            }
-            return jsonify(response), 400
+            }, 400
 
 
         try :
@@ -242,12 +230,11 @@ class DateItemResource(Resource):
             cursor.execute(query, record)
 
             if cursor.rowcount == 0:
-                response = {
+                return {
                     "error_code": 404,
                     "description": "Not Found",
                     "message": "수정할 제품을 찾을 수 없음"
-                }
-                return jsonify(response), 404
+                }, 404
 
             connection.commit()
             cursor.close()
@@ -257,23 +244,21 @@ class DateItemResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
 
         return{
             "success" : True,

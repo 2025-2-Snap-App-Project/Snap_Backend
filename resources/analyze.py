@@ -14,12 +14,11 @@ def allowed_file(filename):
 class AnalyzeResource(Resource):
     def post(self):
         if 'image[]' not in request.files:
-                response = {
+                return {
                     "error_code" : 400,
                     "description" : "Bad Request",
                     "message" : "잘못된 요청 (이미지 누락)"
-                }
-                return jsonify(response), 400
+                }, 400
         
         images = request.files.getlist("image[]")
         os.makedirs("./image/", exist_ok=True)
@@ -29,12 +28,11 @@ class AnalyzeResource(Resource):
                 image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
                 image.save(image_path)
             else:
-                response = {
+                return {
                     "error_code" : 415,
                     "description" : "Unsupported Media Type",
                     "message" : f"지원하지 않는 이미지 형식이 포함되어 있습니다."
-                }
-                return jsonify(response), 400
+                }, 400
 
         # YOLO 탐지 수행
 
@@ -90,23 +88,21 @@ class AnalyzeResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 503,
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
-            }
-            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
         except Exception as e :
             print(e)
             cursor.close()
             connection.close()
-            response = {
+            return {
                 "error_code" : 500,
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
-            }
-            return jsonify(response), 500
+            }, 500
  
         return{
             "success" : True,
