@@ -217,130 +217,66 @@ class DateItemResource(Resource):
             "data" : result
         }, 200
     
+    # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
     def patch(self, purchase_id):
         data = request.get_json()
-        # 소비기한 - 소비기한 보관 장소 수정 ✅
-        if 'storage_location' in data:
 
-            if purchase_id == None or 'device_id' not in data or 'storage_location' not in data:
+        if purchase_id == None or 'device_id' not in data or 'is_favorite' not in data:
+            response = {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : "필수 파라미터 누락"
+            }
+            return jsonify(response), 400
+
+
+        try :
+            connection = get_connection()
+            query = '''
+                UPDATE purchase
+                SET is_favorite = %s
+                WHERE device_id = %s AND purchase_id = %s
+            '''
+            record = (data['is_favorite'], data['device_id'], purchase_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+
+            if cursor.rowcount == 0:
                 response = {
-                    "error_code" : 400,
-                    "description" : "Bad Request",
-                    "message" : "필수 파라미터 누락"
+                    "error_code": 404,
+                    "description": "Not Found",
+                    "message": "수정할 제품을 찾을 수 없음"
                 }
-                return jsonify(response), 400
+                return jsonify(response), 404
 
-            try :
-                connection = get_connection()
-                query = '''
-                    UPDATE purchase
-                    SET storage_location = %s
-                    WHERE device_id = %s AND purchase_id = %s
-                '''
-                record = (data['storage_location'], data['device_id'], purchase_id)
-                cursor = connection.cursor()
-                cursor.execute(query, record)
-
-                if cursor.rowcount == 0:
-                    response = {
-                        "error_code": 404,
-                        "description": "Not Found",
-                        "message": "수정할 제품을 찾을 수 없음"
-                    }
-                    return jsonify(response), 404
-                
-                connection.commit()
-                cursor.close()
-                connection.close()
-            
-            except mysql.connector.Error as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                response = {
-                    "error_code" : 503,
-                    "description" : e.description,
-                    "message" : f"MySQL connector 에러 : {str(e)}"
-                }
-                return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
-            
-            except Exception as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                response = {
-                    "error_code" : 500,
-                    "description" : e.description,
-                    "message" : f"서버 내부 오류 : {str(e)}"
-                }
-                return jsonify(response), 500
-
-    
-            return{
-                "success" : True,
-                "status" : 200,
-                "message" : "보관 장소 수정 성공"
-            }, 200
+            connection.commit()
+            cursor.close()
+            connection.close()
         
-        # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
-        if 'is_favorite' in data:
+        except mysql.connector.Error as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            response = {
+                "error_code" : 503,
+                "description" : e.description,
+                "message" : f"MySQL connector 에러 : {str(e)}"
+            }
+            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+        
+        except Exception as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            response = {
+                "error_code" : 500,
+                "description" : e.description,
+                "message" : f"서버 내부 오류 : {str(e)}"
+            }
+            return jsonify(response), 500
 
-            if purchase_id == None or 'device_id' not in data or 'is_favorite' not in data:
-                response = {
-                    "error_code" : 400,
-                    "description" : "Bad Request",
-                    "message" : "필수 파라미터 누락"
-                }
-                return jsonify(response), 400
-
-
-            try :
-                connection = get_connection()
-                query = '''
-                    UPDATE purchase
-                    SET is_favorite = %s
-                    WHERE device_id = %s AND purchase_id = %s
-                '''
-                record = (data['is_favorite'], data['device_id'], purchase_id)
-                cursor = connection.cursor()
-                cursor.execute(query, record)
-
-                if cursor.rowcount == 0:
-                    response = {
-                        "error_code": 404,
-                        "description": "Not Found",
-                        "message": "수정할 제품을 찾을 수 없음"
-                    }
-                    return jsonify(response), 404
-
-                connection.commit()
-                cursor.close()
-                connection.close()
-            
-            except mysql.connector.Error as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                response = {
-                    "error_code" : 503,
-                    "description" : e.description,
-                    "message" : f"MySQL connector 에러 : {str(e)}"
-                }
-                return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
-            
-            except Exception as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                response = {
-                    "error_code" : 500,
-                    "description" : e.description,
-                    "message" : f"서버 내부 오류 : {str(e)}"
-                }
-                return jsonify(response), 500
-    
-            return{
-                "success" : True,
-                "status" : 200,
-                "message" : "즐겨찾기 업데이트 성공"
-            }, 200
+        return{
+            "success" : True,
+            "status" : 200,
+            "message" : "즐겨찾기 업데이트 성공"
+        }, 200
