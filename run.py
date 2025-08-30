@@ -16,7 +16,7 @@ import uuid
 
 # ----------------------------
 # Flask 앱 생성
-app = error_app(Flask(__name__))
+app = Flask(__name__)
 
 # restfulAPI 생성
 api = Api(app)
