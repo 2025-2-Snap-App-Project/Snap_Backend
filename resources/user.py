@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
@@ -7,6 +7,14 @@ class UserResource(Resource) :
     # 로그인 ✅
     def post(self) :
         data = request.get_json()
+        if 'device_id' or 'username' not in data:
+            response = {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : "필수 파라미터 누락"
+            }
+            return jsonify(response), 400
+        
         try :
             connection = get_connection()
             query = '''
@@ -26,8 +34,24 @@ class UserResource(Resource) :
             print(e)
             cursor.close()
             connection.close()
-            return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
- 
+            response = {
+                "error_code" : 503,
+                "description" : e.description,
+                "message" : f"MySQL connector 에러 : {str(e)}"
+            }
+            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+        
+        except Exception as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            response = {
+                "error_code" : 500,
+                "description" : e.description,
+                "message" : f"서버 내부 오류 : {str(e)}"
+            }
+            return jsonify(response), 500
+        
         return{
             "success" : True,
             "status" : 200,
@@ -37,7 +61,16 @@ class UserResource(Resource) :
     # 회원 탈퇴 ✅
     def delete(self) :
         data = request.get_json()
+        if 'device_id' not in data:
+            response = {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : "필수 파라미터 누락"
+            }
+            return jsonify(response), 400
+        
         device_id = data.get('device_id')
+        
         try :
             connection = get_connection()
             query = '''
@@ -48,6 +81,15 @@ class UserResource(Resource) :
             cursor = connection.cursor()
             cursor.execute(query, record)
             connection.commit()
+
+            if cursor.rowcount == 0:
+                response = {
+                    "error_code": 404,
+                    "description": "Not Found",
+                    "message": "해당 device_id의 사용자를 찾을 수 없음"
+                }
+                return jsonify(response), 404
+            
             cursor.close()
             connection.close()
  
@@ -55,8 +97,24 @@ class UserResource(Resource) :
             print(e)
             cursor.close()
             connection.close()
-            return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
- 
+            response = {
+                "error_code" : 503,
+                "description" : e.description,
+                "message" : f"MySQL connector 에러 : {str(e)}"
+            }
+            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+        
+        except Exception as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            response = {
+                "error_code" : 500,
+                "description" : e.description,
+                "message" : f"서버 내부 오류 : {str(e)}"
+            }
+            return jsonify(response), 500
+
         return{
             "success" : True,
             "status" : 200,
