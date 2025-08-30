@@ -179,8 +179,9 @@ class DateItemResource(Resource):
             '''
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query, (purchase_id, device_id))
+            result = cursor.fetchone()
 
-            if cursor.fetchone() is None:
+            if result is None:
                 cursor.close()
                 connection.close()
                 return {
@@ -188,8 +189,6 @@ class DateItemResource(Resource):
                     "description": "Not Found",
                     "message": "해당하는 제품을 찾을 수 없습니다."
                 }, 404
-
-            result = cursor.fetchone()
             cursor.close()
             connection.close()
 
