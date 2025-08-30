@@ -28,6 +28,16 @@ class UserResource(Resource) :
             connection.commit()
             cursor.close()
             connection.close()
+
+        except mysql.connector.errors.IntegrityError as e:
+            print(e)
+            cursor.close()
+            connection.close()
+            return {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : f"동일 디바이스 ID가 이미 존재합니다. 다시 시도해주세요. : {str(e)}"
+            }, 400
         
         except mysql.connector.Error as e :
             print(e)
@@ -87,7 +97,17 @@ class UserResource(Resource) :
             
             cursor.close()
             connection.close()
- 
+
+        except mysql.connector.errors.IntegrityError as e:
+            print(e)
+            cursor.close()
+            connection.close()
+            return {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : f"회원 탈퇴에 실패했습니다. 다시 시도해주세요. : {str(e)}"
+            }, 400
+
         except mysql.connector.Error as e :
             print(e)
             cursor.close()
