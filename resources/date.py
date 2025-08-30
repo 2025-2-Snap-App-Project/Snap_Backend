@@ -34,15 +34,6 @@ class DateListResource(Resource):
             record = (device_id, )
             cursor = connection.cursor(dictionary=True)
             cursor.execute(query, record)
-
-            if cursor.rowcount == 0:
-                response = {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "해당 조건에 맞는 제품이 없음"
-                }
-                return jsonify(response), 404
-
             result_list = cursor.fetchall()
             filtered_list = []
 
