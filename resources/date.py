@@ -5,8 +5,8 @@ from mysql_connection import get_connection
 from datetime import datetime
 
 class DateListResource(Resource):
+    # 소비기한 - 소비기한 리스트 조회 ✅
     def get(self):
-        # 소비기한 - 소비기한 리스트 조회 ✅
         device_id = request.args.get('device_id')
         category = request.args.get('category')
 
@@ -146,8 +146,8 @@ class DateListResource(Resource):
         }, 200
     
 class DateItemResource(Resource):
+    # 소비기한 - 소비기한 상세 정보 조회 ✅
     def get(self, purchase_id):
-        # 소비기한 - 소비기한 상세 정보 조회 ✅
         device_id = request.args.get('device_id')
 
         if device_id == None or purchase_id == None:
