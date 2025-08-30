@@ -232,6 +232,24 @@ class DateItemResource(Resource):
 
         try :
             connection = get_connection()
+
+            query = '''
+                select * from purchase
+                WHERE device_id = %s AND purchase_id = %s
+            '''
+            record = (data['device_id'], purchase_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+
+            if cursor.fetchone() is None:
+                cursor.close()
+                connection.close()
+                return {
+                    "error_code": 404,
+                    "description": "Not Found",
+                    "message": "해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다."
+                }, 404
+            
             query = '''
                 UPDATE purchase
                 SET is_favorite = %s
@@ -240,14 +258,6 @@ class DateItemResource(Resource):
             record = (data['is_favorite'], data['device_id'], purchase_id)
             cursor = connection.cursor()
             cursor.execute(query, record)
-
-            if cursor.rowcount == 0:
-                return {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "수정할 제품을 찾을 수 없음"
-                }, 404
-
             connection.commit()
             cursor.close()
             connection.close()
