@@ -5,6 +5,7 @@ from resources.user import UserResource
 from resources.product import ProductsResource
 from resources.date import DateResource
 from resources.analyze import AnalyzeResource
+from error_handler import error_app
 
 from ultralytics import YOLO
 from PIL import Image
@@ -15,7 +16,7 @@ import uuid
 
 # ----------------------------
 # Flask 앱 생성
-app = Flask(__name__)
+app = error_app(Flask(__name__))
 
 # restfulAPI 생성
 api = Api(app)
