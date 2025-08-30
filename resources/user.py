@@ -7,7 +7,7 @@ class UserResource(Resource) :
     # 로그인 ✅
     def post(self) :
         data = request.get_json()
-        if 'device_id' or 'username' not in data:
+        if 'device_id' not in data or 'username' not in data:
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
