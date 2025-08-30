@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify
 from flask_restful import Api
 from resources.user import UserResource
-from resources.product import ProductsResource
+from resources.products import ProductsResource
 from resources.date import DateListResource
 from resources.date import DateItemResource
 from resources.analyze import AnalyzeResource
