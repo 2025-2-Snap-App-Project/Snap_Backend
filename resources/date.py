@@ -82,7 +82,7 @@ class DateListResource(Resource):
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
         data = request.get_json()
-        if 'device_id' not in data or 'purchase_id' not in data:
+        if 'device_id' not in data or 'purchase_ids' not in data:
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
@@ -90,7 +90,7 @@ class DateListResource(Resource):
             }, 400
 
         device_id = data.get('device_id')
-        purchase_ids = data.get('purchase_id')
+        purchase_ids = data.get('purchase_ids')
 
         try :
             connection = get_connection()
