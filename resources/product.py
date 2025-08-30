@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
@@ -7,6 +7,15 @@ from mysql_connection import get_connection
 class ProductsResource(Resource):
     def post(self, purchase_id):
         data = request.get_json()
+        if 'device_id' not in data or 'storage_location' not in data or purchase_id == None :
+            response = {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : "필수 파라미터 누락"
+            }
+            return jsonify(response), 400
+        
+
         try :
             connection = get_connection()
             query = '''
@@ -26,8 +35,24 @@ class ProductsResource(Resource):
             print(e)
             cursor.close()
             connection.close()
-            return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
- 
+            response = {
+                "error_code" : 503,
+                "description" : e.description,
+                "message" : f"MySQL connector 에러 : {str(e)}"
+            }
+            return jsonify(response), 503 # HTTPStatus.SERVICE_UNAVAILABLE
+
+        except Exception as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            response = {
+                "error_code" : 500,
+                "description" : e.description,
+                "message" : f"서버 내부 오류 : {str(e)}"
+            }
+            return jsonify(response), 500
+         
         return{
             "success" : True,
             "status" : 200,
