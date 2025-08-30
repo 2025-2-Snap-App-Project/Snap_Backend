@@ -39,13 +39,15 @@ class DateListResource(Resource):
             for result in result_list:
                 now_date = datetime.now()
                 db_date = datetime.strptime(result['expiration_date'], "%Y%m%d")
-                day_diff = (now_date - db_date).days
-                if category == '날짜 지남' and day_diff < 0:
+                day_diff = (db_date - now_date).days
+                if category == '날짜지남' and day_diff < 0:
                     filtered_list.append(result)
-                elif category == '기한 임박' and day_diff < 7:
+                elif category == '기한임박' and day_diff < 7:
                     filtered_list.append(result)
-                elif category == '기한 여유' and day_diff < 14:
+                elif category == '기한여유' and day_diff < 14:
                     filtered_list.append(result)
+                else:
+                    pass
 
             cursor.close()
             connection.close()
