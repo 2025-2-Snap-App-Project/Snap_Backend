@@ -97,6 +97,16 @@ class ProductsResource(Resource):
             connection.commit()
             cursor.close()
             connection.close()
+
+        except mysql.connector.errors.IntegrityError as e:
+            print(e)
+            cursor.close()
+            connection.close()
+            return {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : f"제품 정보를 업데이트할 수 없습니다! : {str(e)}"
+            }, 400
         
         except mysql.connector.Error as e :
             print(e)
