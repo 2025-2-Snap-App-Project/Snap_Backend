@@ -6,7 +6,6 @@ from resources.products import ProductsResource
 from resources.date import DateListResource
 from resources.date import DateItemResource
 from resources.analyze import AnalyzeResource
-from error_handler import error_app
 
 from ultralytics import YOLO
 from PIL import Image
