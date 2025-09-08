@@ -91,58 +91,57 @@ class DateListResource(Resource):
 
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_ids')
+        for purchase_id in purchase_ids:
+            try :
+                connection = get_connection()
+                query = f'''
+                        delete from purchase
+                        where device_id = %s AND purchase_id = %s;
+                        '''
+                record = (device_id, purchase_id)
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute(query, record)
+                connection.commit()
 
-        try :
-            connection = get_connection()
-            placeholders = ','.join(['%s'] * len(purchase_ids))
-            query = f'''
-                    delete from purchase
-                    where device_id = %s AND purchase_id IN ({placeholders});
-                    '''
-            record = [device_id] + purchase_ids
-            cursor = connection.cursor()
-            cursor.execute(query, tuple(record))
-            connection.commit()
+                if cursor.rowcount == 0:
+                    return {
+                        "error_code": 404,
+                        "description": "Not Found",
+                        "message": "삭제할 제품을 찾을 수 없음"
+                    }, 404
+                
+                cursor.close()
+                connection.close()
 
-            if cursor.rowcount == 0:
+            except mysql.connector.errors.IntegrityError as e:
+                print(e)
+                cursor.close()
+                connection.close()
                 return {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "삭제할 제품을 찾을 수 없음"
-                }, 404
-            
-            cursor.close()
-            connection.close()
-
-        except mysql.connector.errors.IntegrityError as e:
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : f"제품을 삭제할 수 없습니다! : {str(e)}"
-            }, 400
+                    "error_code" : 400,
+                    "description" : "Bad Request",
+                    "message" : f"제품을 삭제할 수 없습니다! : {str(e)}"
+                }, 400
  
-        except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            except mysql.connector.Error as e :
+                print(e)
+                cursor.close()
+                connection.close()
+                return {
+                    "error_code" : 503,
+                    "description" : e.description,
+                    "message" : f"MySQL connector 에러 : {str(e)}"
+                }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
         
-        except Exception as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
+            except Exception as e :
+                print(e)
+                cursor.close()
+                connection.close()
+                return {
+                    "error_code" : 500,
+                    "description" : e.description,
+                    "message" : f"서버 내부 오류 : {str(e)}"
+                }, 500
  
         return{
             "success" : True,
