@@ -41,10 +41,11 @@ class AnalyzeResource(Resource):
         # 생성형 AI 실행
 
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
-        product_name = "product_name_sample"
-        expiration_date = "20200101"
-        summary = "summary_sample"
-        ingredients = "ingredients_sample"
+        # OCR 수행 이후 출력값 더미 데이터
+        product_name = "product_name_sample" # OCR 수행 이후 출력값 - 제품명
+        expiration_date = "20200101" # OCR 수행 이후 출력값 - 소비기한
+        ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
+        summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
 
         try :
             connection = get_connection()
