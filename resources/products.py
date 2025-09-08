@@ -3,26 +3,27 @@ from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
 
-class UserResource(Resource) :
-    # 로그인 ✅
-    def post(self) :
+class ProductsResource(Resource):
+    # 촬영하기 - 제품 보관하기 ✅
+    def post(self, purchase_id):
         data = request.get_json()
-        if 'device_id' not in data or 'username' not in data:
+        if 'device_id' not in data or 'storage_location' not in data or purchase_id == None :
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
             }, 400
         
+
         try :
             connection = get_connection()
             query = '''
-                    insert into user
-                        (device_id, username)
+                    insert into purchase
+                        (purchase_id, device_id, storage_location, is_favorite)
                     values
-                        (%s, %s);
+                        (%s,%s,%s,%s);
                     '''
-            record = (data['device_id'], data['username'])
+            record = (purchase_id, data['device_id'], data['storage_location'], False)
             cursor = connection.cursor()
             cursor.execute(query, record)
             connection.commit()
@@ -36,7 +37,7 @@ class UserResource(Resource) :
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
-                "message" : f"동일 디바이스 ID가 이미 존재합니다. 다시 시도해주세요. : {str(e)}"
+                "message" : f"제품 정보를 저장할 수 없습니다! : {str(e)}"
             }, 400
         
         except mysql.connector.Error as e :
@@ -48,7 +49,7 @@ class UserResource(Resource) :
                 "description" : e.description,
                 "message" : f"MySQL connector 에러 : {str(e)}"
             }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
-        
+
         except Exception as e :
             print(e)
             cursor.close()
@@ -58,43 +59,52 @@ class UserResource(Resource) :
                 "description" : e.description,
                 "message" : f"서버 내부 오류 : {str(e)}"
             }, 500
-        
+         
         return{
             "success" : True,
             "status" : 200,
-            "message" : "로그인 성공"
+            "message" : "보관 장소 등록 성공"
         }, 200
     
-    # 회원 탈퇴 ✅
-    def delete(self) :
+    # 소비기한 - 소비기한 보관 장소 수정 ✅
+    def patch(self, purchase_id):
         data = request.get_json()
-        if 'device_id' not in data:
+        if purchase_id == None or 'device_id' not in data or 'storage_location' not in data:
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
                 "message" : "필수 파라미터 누락"
             }, 400
-        
-        device_id = data.get('device_id')
-        
+
         try :
             connection = get_connection()
+
             query = '''
-                    delete from user
-                    where device_id = %s;
-                    '''
-            record = (device_id, )
+                select * from purchase
+                WHERE device_id = %s AND purchase_id = %s
+            '''
+            record = (data['device_id'], purchase_id)
             cursor = connection.cursor()
             cursor.execute(query, record)
-            connection.commit()
 
-            if cursor.rowcount == 0:
+            if cursor.fetchone() is None:
+                cursor.close()
+                connection.close()
                 return {
                     "error_code": 404,
                     "description": "Not Found",
-                    "message": "해당 device_id의 사용자를 찾을 수 없음"
+                    "message": "해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다."
                 }, 404
-            
+
+            query = '''
+                UPDATE purchase
+                SET storage_location = %s
+                WHERE device_id = %s AND purchase_id = %s
+            '''
+            record = (data['storage_location'], data['device_id'], purchase_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+            connection.commit()
             cursor.close()
             connection.close()
 
@@ -105,9 +115,9 @@ class UserResource(Resource) :
             return {
                 "error_code" : 400,
                 "description" : "Bad Request",
-                "message" : f"회원 탈퇴에 실패했습니다. 다시 시도해주세요. : {str(e)}"
+                "message" : f"제품 정보를 업데이트할 수 없습니다! : {str(e)}"
             }, 400
-
+        
         except mysql.connector.Error as e :
             print(e)
             cursor.close()
@@ -128,8 +138,9 @@ class UserResource(Resource) :
                 "message" : f"서버 내부 오류 : {str(e)}"
             }, 500
 
+
         return{
             "success" : True,
             "status" : 200,
-            "message" : "회원탈퇴 성공"
+            "message" : "보관 장소 수정 성공"
         }, 200

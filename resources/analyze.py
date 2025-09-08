@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask import json
 from flask_restful import Resource
 import mysql.connector
@@ -6,17 +6,33 @@ import os
 import uuid
 from mysql_connection import get_connection
 
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # 촬영하기 - 이미지 분석 진행 ✖️
 class AnalyzeResource(Resource):
     def post(self):
         if 'image[]' not in request.files:
-            return 'Image is missing', 404
+                return {
+                    "error_code" : 400,
+                    "description" : "Bad Request",
+                    "message" : "잘못된 요청 (이미지 누락)"
+                }, 400
+        
         images = request.files.getlist("image[]")
         os.makedirs("./image/", exist_ok=True)
 
         for image in images:
-            image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
-            image.save(image_path)
+            if image and allowed_file(image.filename):
+                image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
+                image.save(image_path)
+            else:
+                return {
+                    "error_code" : 415,
+                    "description" : "Unsupported Media Type",
+                    "message" : f"지원하지 않는 이미지 형식이 포함되어 있습니다."
+                }, 400
 
         # YOLO 탐지 수행
 
@@ -68,11 +84,35 @@ class AnalyzeResource(Resource):
             cursor.close()
             connection.close()
 
+        except mysql.connector.errors.IntegrityError as e:
+            print(e)
+            cursor.close()
+            connection.close()
+            return {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : f"제품 정보를 저장할 수 없습니다! : {str(e)}"
+            }, 400
+
         except mysql.connector.Error as e :
             print(e)
             cursor.close()
             connection.close()
-            return {"error" : str(e)}, 503 #HTTPStatus.SERVICE_UNAVAILABLE
+            return {
+                "error_code" : 503,
+                "description" : e.description,
+                "message" : f"MySQL connector 에러 : {str(e)}"
+            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+        
+        except Exception as e :
+            print(e)
+            cursor.close()
+            connection.close()
+            return {
+                "error_code" : 500,
+                "description" : e.description,
+                "message" : f"서버 내부 오류 : {str(e)}"
+            }, 500
  
         return{
             "success" : True,
