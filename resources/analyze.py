@@ -5,10 +5,22 @@ import mysql.connector
 import os
 import uuid
 from mysql_connection import get_connection
+from google.cloud import vision
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# OCR 수행 함수
+def detect_text(path):
+    client = vision.ImageAnnotatorClient()
+    with open(client, "rb") as image_file:
+        content = image_file.read()
+    
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+
 
 # 촬영하기 - 이미지 분석 진행 ✖️
 class AnalyzeResource(Resource):
@@ -27,6 +39,7 @@ class AnalyzeResource(Resource):
             if image and allowed_file(image.filename):
                 image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
                 image.save(image_path)
+                detect_text(image_path) # OCR 수행
             else:
                 return {
                     "error_code" : 415,
@@ -35,8 +48,6 @@ class AnalyzeResource(Resource):
                 }, 400
 
         # YOLO 탐지 수행
-
-        # OCR 수행
 
         # 생성형 AI 실행
 
