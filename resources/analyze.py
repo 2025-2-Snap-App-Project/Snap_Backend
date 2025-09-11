@@ -24,7 +24,7 @@ def detect_text(path):
     
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
-    texts = response.text_annotations
+    return response.text_annotations
 
 
 # 촬영하기 - 이미지 분석 진행 ✖️
