@@ -5,10 +5,29 @@ import mysql.connector
 import os
 import uuid
 from mysql_connection import get_connection
+from google.cloud import vision
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# 개별 이미지 크롭 > 이미지 저장
+def crop_and_save(image, bbox, img_path):
+    cropped_img = image.crop(bbox)
+    cropped_img.save(img_path)
+
+# OCR 수행 함수
+def detect_text(path):
+    client = vision.ImageAnnotatorClient()
+    with open(client, "rb") as image_file:
+        content = image_file.read()
+    
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    return response.text_annotations
+
 
 # 촬영하기 - 이미지 분석 진행 ✖️
 class AnalyzeResource(Resource):
@@ -21,12 +40,56 @@ class AnalyzeResource(Resource):
                 }, 400
         
         images = request.files.getlist("image[]")
-        os.makedirs("./image/", exist_ok=True)
+        os.makedirs("./image/original", exist_ok=True)
+        os.makedirs("./image/name/", exist_ok=True)
+        os.makedirs("./image/ingredients/", exist_ok=True)
+        os.makedirs("./image/date/", exist_ok=True)
 
+        # YOLO 탐지 수행
+
+        # YOLO 탐지 output dummy data
+        dummy_yolo_output = [
+            {
+                "class": "name",
+                "class_id": 0,
+                "confidence": 0.92,
+                "bbox": [50, 40, 400, 100]   # [x_min, y_min, x_max, y_max]
+            },
+            {
+                "class": "ingredients",
+                "class_id": 1,
+                "confidence": 0.88,
+                "bbox": [60, 150, 420, 350]
+            },
+            {
+                "class": "date",
+                "class_id": 2,
+                "confidence": 0.95,
+                "bbox": [70, 480, 250, 520]
+            }
+        ]
+        name_bbox = dummy_yolo_output[0]['bbox'] # 제품명 좌표
+        ingredients_bbox = dummy_yolo_output[1]['bbox'] # 원재료명 좌표
+        date_bbox = dummy_yolo_output[2]['bbox'] # 소비기한 좌표
+
+        # 이미지 크롭 > 이미지 저장 > OCR 수행
         for image in images:
             if image and allowed_file(image.filename):
-                image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
-                image.save(image_path)
+                img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
+                name_path = "./cropped/name/" + img_filename + ".jpg"
+                ingredients_path = "./cropped/ingredients/" + img_filename + ".jpg"
+                date_path = "./cropped/date/" + img_filename + ".jpg"
+
+                # 개별 bbox 이미지 크롭 > 크롭된 이미지 저장
+                crop_and_save(image, name_bbox, name_path) # 제품명
+                crop_and_save(image, ingredients_bbox, ingredients_path) # 원재료명
+                crop_and_save(image, date_bbox, img_filename) # 소비기한
+
+                # OCR 수행 > 출력값을 개별 변수에 저장
+                product_name = detect_text(name_path) # 제품명
+                ingredients = detect_text(ingredients_path) # 원재료명
+                expiration_date = detect_text(date_path) # 소비기한
+
             else:
                 return {
                     "error_code" : 415,
@@ -34,17 +97,14 @@ class AnalyzeResource(Resource):
                     "message" : f"지원하지 않는 이미지 형식이 포함되어 있습니다."
                 }, 400
 
-        # YOLO 탐지 수행
-
-        # OCR 수행
-
         # 생성형 AI 실행
 
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
-        product_name = "product_name_sample"
-        expiration_date = "20200101"
-        summary = "summary_sample"
-        ingredients = "ingredients_sample"
+        # OCR 수행 이후 출력값 더미 데이터
+        product_name = "product_name_sample" # OCR 수행 이후 출력값 - 제품명
+        expiration_date = "20200101" # OCR 수행 이후 출력값 - 소비기한
+        ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
+        summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
 
         try :
             connection = get_connection()
