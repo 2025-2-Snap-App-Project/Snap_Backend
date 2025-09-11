@@ -43,6 +43,8 @@ class AnalyzeResource(Resource):
         os.makedirs("./image/ingredients/", exist_ok=True)
         os.makedirs("./image/date/", exist_ok=True)
 
+        # YOLO 탐지 수행
+
         # YOLO 탐지 output dummy data
         dummy_yolo_output = [
             {
@@ -68,7 +70,7 @@ class AnalyzeResource(Resource):
         ingredients_bbox = dummy_yolo_output[1]['bbox'] # 원재료명 좌표
         date_bbox = dummy_yolo_output[2]['bbox'] # 소비기한 좌표
 
-
+        # 이미지 크롭 > 이미지 저장 > OCR 수행
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
@@ -92,8 +94,6 @@ class AnalyzeResource(Resource):
                     "description" : "Unsupported Media Type",
                     "message" : f"지원하지 않는 이미지 형식이 포함되어 있습니다."
                 }, 400
-
-        # YOLO 탐지 수행
 
         # 생성형 AI 실행
 
