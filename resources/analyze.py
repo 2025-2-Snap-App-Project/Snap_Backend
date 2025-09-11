@@ -110,6 +110,7 @@ class AnalyzeResource(Resource):
                 }, 400
 
         # 생성형 AI 실행
+        genai.configure(api_key="YOUR_API_KEY")
 
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
         # OCR 수행 & 생성형 AI API 실행 이후 출력값 더미 데이터
