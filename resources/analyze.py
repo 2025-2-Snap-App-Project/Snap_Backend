@@ -6,6 +6,13 @@ import os
 import uuid
 from mysql_connection import get_connection
 from google.cloud import vision
+import pathlib
+import textwrap
+
+import google.generativeai as genai
+
+from IPython.display import display
+from IPython.display import Markdown
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
 
@@ -27,6 +34,11 @@ def detect_text(path):
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
     return response.text_annotations
+
+# Markdown 텍스트 표시 함수
+def to_markdown(text):
+  text = text.replace('•', '  *')
+  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
 
 # 촬영하기 - 이미지 분석 진행 ✖️
