@@ -71,9 +71,21 @@ class AnalyzeResource(Resource):
 
         for image in images:
             if image and allowed_file(image.filename):
-                image_path = "./image/" + str(uuid.uuid1()) + ".jpg"
-                image.save(image_path)
-                detect_text(image_path) # OCR 수행
+                img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
+                name_path = "./cropped/name/" + img_filename + ".jpg"
+                ingredients_path = "./cropped/ingredients/" + img_filename + ".jpg"
+                date_path = "./cropped/date/" + img_filename + ".jpg"
+
+                # 개별 bbox 이미지 크롭 > 크롭된 이미지 저장
+                crop_and_save(image, name_bbox, name_path) # 제품명
+                crop_and_save(image, ingredients_bbox, ingredients_path) # 원재료명
+                crop_and_save(image, date_bbox, img_filename) # 소비기한
+
+                # OCR 수행 > 출력값을 개별 변수에 저장
+                product_name = detect_text(name_path) # 제품명
+                ingredients = detect_text(ingredients_path) # 원재료명
+                expiration_date = detect_text(date_path) # 소비기한
+
             else:
                 return {
                     "error_code" : 415,
