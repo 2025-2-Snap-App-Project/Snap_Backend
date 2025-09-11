@@ -111,6 +111,9 @@ class AnalyzeResource(Resource):
 
         # 생성형 AI 실행
         genai.configure(api_key="YOUR_API_KEY")
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
+        summary = to_markdown(response.text)
 
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
         # OCR 수행 & 생성형 AI API 실행 이후 출력값 더미 데이터
