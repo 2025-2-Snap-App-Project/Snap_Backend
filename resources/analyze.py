@@ -7,6 +7,8 @@ import uuid
 from mysql_connection import get_connection
 from google.cloud import vision
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
+
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
