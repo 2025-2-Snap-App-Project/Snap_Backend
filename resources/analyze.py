@@ -39,6 +39,9 @@ class AnalyzeResource(Resource):
         
         images = request.files.getlist("image[]")
         os.makedirs("./image/original", exist_ok=True)
+        os.makedirs("./image/name/", exist_ok=True)
+        os.makedirs("./image/ingredients/", exist_ok=True)
+        os.makedirs("./image/date/", exist_ok=True)
 
         # YOLO 탐지 output dummy data
         dummy_yolo_output = [
