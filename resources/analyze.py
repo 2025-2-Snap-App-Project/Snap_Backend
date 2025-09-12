@@ -6,6 +6,13 @@ import os
 import uuid
 from mysql_connection import get_connection
 from google.cloud import vision
+import pathlib
+import textwrap
+
+import google.generativeai as genai
+
+from IPython.display import display
+from IPython.display import Markdown
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
 
@@ -27,6 +34,11 @@ def detect_text(path):
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
     return response.text_annotations
+
+# Markdown 텍스트 표시 함수
+def to_markdown(text):
+  text = text.replace('•', '  *')
+  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
 
 # 촬영하기 - 이미지 분석 진행 ✖️
@@ -98,9 +110,13 @@ class AnalyzeResource(Resource):
                 }, 400
 
         # 생성형 AI 실행
+        genai.configure(api_key="YOUR_API_KEY")
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
+        summary = to_markdown(response.text)
 
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
-        # OCR 수행 이후 출력값 더미 데이터
+        # OCR 수행 & 생성형 AI API 실행 이후 출력값 더미 데이터
         product_name = "product_name_sample" # OCR 수행 이후 출력값 - 제품명
         expiration_date = "20200101" # OCR 수행 이후 출력값 - 소비기한
         ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
