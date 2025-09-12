@@ -114,13 +114,10 @@ class DateItemResource(Resource):
     # 소비기한 - 소비기한 상세 정보 조회 ✅
     def get(self, purchase_id):
         device_id = request.args.get('device_id')
-
-        if device_id == None or purchase_id == None:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if device_id == None :
+            handle_value_error("디바이스 ID 누락")
+        if purchase_id == None :
+            handle_value_error("구매 ID 누락") 
 
         try:
             connection = get_connection()
@@ -142,42 +139,24 @@ class DateItemResource(Resource):
             result = cursor.fetchone()
 
             if result is None:
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "해당하는 제품을 찾을 수 없습니다."
-                }, 404
-            cursor.close()
-            connection.close()
+                handle_not_found_error("해당하는 제품을 찾을 수 없습니다.")
+
+            return {
+                "success" : True,
+                "status" : 200,
+                "message" : "상세 조회 성공",
+                "data" : result
+            }, 200
 
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_connect_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
-
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "상세 조회 성공",
-            "data" : result
-        }, 200
     
     # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
     def patch(self, purchase_id):
