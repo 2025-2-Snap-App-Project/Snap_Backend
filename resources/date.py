@@ -68,15 +68,14 @@ class DateListResource(Resource):
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
         data = request.get_json()
-        if 'device_id' not in data or 'purchase_ids' not in data:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if 'device_id' not in data:
+            handle_value_error("디바이스 ID 누락")
+        if 'purchase_ids' not in data:
+            handle_value_error("구매 ID 누락")
 
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_ids')
+
         for purchase_id in purchase_ids:
             try :
                 connection = get_connection()
@@ -90,50 +89,26 @@ class DateListResource(Resource):
                 connection.commit()
 
                 if cursor.rowcount == 0:
-                    return {
-                        "error_code": 404,
-                        "description": "Not Found",
-                        "message": "삭제할 제품을 찾을 수 없음"
-                    }, 404
-                
-                cursor.close()
-                connection.close()
+                    handle_not_found_error("삭제할 제품을 찾을 수 없음")
+
+                return {
+                    "success" : True,
+                    "status" : 200,
+                    "message" : "제품 삭제 성공"
+                }, 200
 
             except mysql.connector.errors.IntegrityError as e:
-                print(e)
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code" : 400,
-                    "description" : "Bad Request",
-                    "message" : f"제품을 삭제할 수 없습니다! : {str(e)}"
-                }, 400
+                handle_mysql_integrity_error(e, "제품을 삭제할 수 없습니다!")
  
             except mysql.connector.Error as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code" : 503,
-                    "description" : e.description,
-                    "message" : f"MySQL connector 에러 : {str(e)}"
-                }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+                handle_mysql_connect_error(e)
         
             except Exception as e :
-                print(e)
+                server_error(e)
+
+            finally:
                 cursor.close()
                 connection.close()
-                return {
-                    "error_code" : 500,
-                    "description" : e.description,
-                    "message" : f"서버 내부 오류 : {str(e)}"
-                }, 500
- 
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "제품 삭제 성공"
-        }, 200
     
 class DateItemResource(Resource):
     # 소비기한 - 소비기한 상세 정보 조회 ✅
