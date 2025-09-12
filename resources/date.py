@@ -3,6 +3,7 @@ from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
 from datetime import datetime
+from error_handler import *
 
 class DateListResource(Resource):
     # 소비기한 - 소비기한 리스트 조회 ✅
@@ -10,12 +11,10 @@ class DateListResource(Resource):
         device_id = request.args.get('device_id')
         category = request.args.get('category')
 
-        if device_id == None or category == None:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if device_id == None:
+            handle_value_error("디바이스 ID 누락")
+        if category == None:
+            handle_value_error("카테고리 구분 누락")
         
         try:
             connection = get_connection()
@@ -49,35 +48,22 @@ class DateListResource(Resource):
                 else:
                     pass
 
-            cursor.close()
-            connection.close()
+            return {
+                "success" : True,
+                "status" : 200,
+                "message" : "리스트 조회 성공",
+                "data" : filtered_list
+            }, 200
 
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_integrity_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
-
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "리스트 조회 성공",
-            "data" : filtered_list
-        }, 200
     
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
