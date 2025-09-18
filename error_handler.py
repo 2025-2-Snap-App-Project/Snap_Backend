@@ -15,6 +15,14 @@ def handle_mysql_integrity_error(e, msg):
         "message" : f"{msg} : {str(e)}"
     }, 400
 
+# 415 Unsupported Media Type
+def handle_media_type_error(msg):
+    return {
+        "error_code" : 415,
+        "description" : "Unsupported Media Type",
+        "message" : msg        
+    }, 415
+
 # 404 Not Found
 def handle_not_found_error(msg):
     return {
