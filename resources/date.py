@@ -3,6 +3,7 @@ from flask_restful import Resource
 import mysql.connector
 from mysql_connection import get_connection
 from datetime import datetime
+from error_handler import *
 
 class DateListResource(Resource):
     # 소비기한 - 소비기한 리스트 조회 ✅
@@ -10,12 +11,10 @@ class DateListResource(Resource):
         device_id = request.args.get('device_id')
         category = request.args.get('category')
 
-        if device_id == None or category == None:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if device_id == None:
+            handle_value_error("디바이스 ID 누락")
+        if category == None:
+            handle_value_error("카테고리 구분 누락")
         
         try:
             connection = get_connection()
@@ -49,48 +48,34 @@ class DateListResource(Resource):
                 else:
                     pass
 
-            cursor.close()
-            connection.close()
+            return {
+                "success" : True,
+                "status" : 200,
+                "message" : "리스트 조회 성공",
+                "data" : filtered_list
+            }, 200
 
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_integrity_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
-
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "리스트 조회 성공",
-            "data" : filtered_list
-        }, 200
     
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
         data = request.get_json()
-        if 'device_id' not in data or 'purchase_ids' not in data:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if 'device_id' not in data:
+            handle_value_error("디바이스 ID 누락")
+        if 'purchase_ids' not in data:
+            handle_value_error("구매 ID 누락")
 
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_ids')
+
         for purchase_id in purchase_ids:
             try :
                 connection = get_connection()
@@ -104,62 +89,35 @@ class DateListResource(Resource):
                 connection.commit()
 
                 if cursor.rowcount == 0:
-                    return {
-                        "error_code": 404,
-                        "description": "Not Found",
-                        "message": "삭제할 제품을 찾을 수 없음"
-                    }, 404
-                
-                cursor.close()
-                connection.close()
+                    handle_not_found_error("삭제할 제품을 찾을 수 없음")
+
+                return {
+                    "success" : True,
+                    "status" : 200,
+                    "message" : "제품 삭제 성공"
+                }, 200
 
             except mysql.connector.errors.IntegrityError as e:
-                print(e)
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code" : 400,
-                    "description" : "Bad Request",
-                    "message" : f"제품을 삭제할 수 없습니다! : {str(e)}"
-                }, 400
+                handle_mysql_integrity_error(e, "제품을 삭제할 수 없습니다!")
  
             except mysql.connector.Error as e :
-                print(e)
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code" : 503,
-                    "description" : e.description,
-                    "message" : f"MySQL connector 에러 : {str(e)}"
-                }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+                handle_mysql_connect_error(e)
         
             except Exception as e :
-                print(e)
+                server_error(e)
+
+            finally:
                 cursor.close()
                 connection.close()
-                return {
-                    "error_code" : 500,
-                    "description" : e.description,
-                    "message" : f"서버 내부 오류 : {str(e)}"
-                }, 500
- 
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "제품 삭제 성공"
-        }, 200
     
 class DateItemResource(Resource):
     # 소비기한 - 소비기한 상세 정보 조회 ✅
     def get(self, purchase_id):
         device_id = request.args.get('device_id')
-
-        if device_id == None or purchase_id == None:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
+        if device_id == None :
+            handle_value_error("디바이스 ID 누락")
+        if purchase_id == None :
+            handle_value_error("구매 ID 누락") 
 
         try:
             connection = get_connection()
@@ -181,54 +139,34 @@ class DateItemResource(Resource):
             result = cursor.fetchone()
 
             if result is None:
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "해당하는 제품을 찾을 수 없습니다."
-                }, 404
-            cursor.close()
-            connection.close()
+                handle_not_found_error("해당하는 제품을 찾을 수 없습니다.")
+
+            return {
+                "success" : True,
+                "status" : 200,
+                "message" : "상세 조회 성공",
+                "data" : result
+            }, 200
 
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_connect_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
-
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "상세 조회 성공",
-            "data" : result
-        }, 200
     
     # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
     def patch(self, purchase_id):
         data = request.get_json()
-
-        if purchase_id == None or 'device_id' not in data or 'is_favorite' not in data:
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : "필수 파라미터 누락"
-            }, 400
-
+        if 'device_id' not in data:
+            handle_value_error("디바이스 ID 누락")
+        if 'is_favorite' not in data:
+            handle_value_error("즐겨찾기 여부 누락")
+        if purchase_id == None :
+            handle_value_error("구매 ID 누락")
 
         try :
             connection = get_connection()
@@ -242,13 +180,7 @@ class DateItemResource(Resource):
             cursor.execute(query, record)
 
             if cursor.fetchone() is None:
-                cursor.close()
-                connection.close()
-                return {
-                    "error_code": 404,
-                    "description": "Not Found",
-                    "message": "해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다."
-                }, 404
+                handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
             
             query = '''
                 UPDATE purchase
@@ -259,41 +191,22 @@ class DateItemResource(Resource):
             cursor = connection.cursor()
             cursor.execute(query, record)
             connection.commit()
-            cursor.close()
-            connection.close()
+
+            return {
+                "success" : True,
+                "status" : 200,
+                "message" : "즐겨찾기 업데이트 성공"
+            }, 200
 
         except mysql.connector.errors.IntegrityError as e:
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : f"제품 정보를 업데이트할 수 없습니다! : {str(e)}"
-            }, 400
+            handle_mysql_integrity_error(e, "제품 정보를 업데이트할 수 없습니다!")
         
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_connect_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
-
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "즐겨찾기 업데이트 성공"
-        }, 200

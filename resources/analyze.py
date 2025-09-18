@@ -13,6 +13,7 @@ import google.generativeai as genai
 
 from IPython.display import display
 from IPython.display import Markdown
+from error_handler import *
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
 
@@ -45,11 +46,7 @@ def to_markdown(text):
 class AnalyzeResource(Resource):
     def post(self):
         if 'image[]' not in request.files:
-                return {
-                    "error_code" : 400,
-                    "description" : "Bad Request",
-                    "message" : "잘못된 요청 (이미지 누락)"
-                }, 400
+                handle_value_error("이미지 누락")
         
         images = request.files.getlist("image[]")
         os.makedirs("./image/original", exist_ok=True)
@@ -103,11 +100,7 @@ class AnalyzeResource(Resource):
                 expiration_date = detect_text(date_path) # 소비기한
 
             else:
-                return {
-                    "error_code" : 415,
-                    "description" : "Unsupported Media Type",
-                    "message" : f"지원하지 않는 이미지 형식이 포함되어 있습니다."
-                }, 400
+                handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
         # 생성형 AI 실행
         genai.configure(api_key="YOUR_API_KEY")
@@ -157,42 +150,23 @@ class AnalyzeResource(Resource):
             result_dict = {"item_id" : item_id, "product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
             connection.commit()
-            cursor.close()
-            connection.close()
+
+            return{
+                "success" : True,
+                "status" : 200,
+                "message" : "요청이 성공적으로 처리되었습니다.",
+                "data" : result_dict
+            }, 200
 
         except mysql.connector.errors.IntegrityError as e:
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 400,
-                "description" : "Bad Request",
-                "message" : f"제품 정보를 저장할 수 없습니다! : {str(e)}"
-            }, 400
+            handle_mysql_integrity_error(e, "제품 정보를 저장할 수 없습니다!")
 
         except mysql.connector.Error as e :
-            print(e)
-            cursor.close()
-            connection.close()
-            return {
-                "error_code" : 503,
-                "description" : e.description,
-                "message" : f"MySQL connector 에러 : {str(e)}"
-            }, 503 # HTTPStatus.SERVICE_UNAVAILABLE
+            handle_mysql_connect_error(e)
         
         except Exception as e :
-            print(e)
+            server_error(e)
+
+        finally:
             cursor.close()
             connection.close()
-            return {
-                "error_code" : 500,
-                "description" : e.description,
-                "message" : f"서버 내부 오류 : {str(e)}"
-            }, 500
- 
-        return{
-            "success" : True,
-            "status" : 200,
-            "message" : "요청이 성공적으로 처리되었습니다.",
-            "data" : result_dict
-        }, 200
