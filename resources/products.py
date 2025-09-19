@@ -38,14 +38,13 @@ class ProductsResource(Resource):
         select_query = "SELECT * FROM purchase WHERE device_id = %s AND purchase_id = %s"
         update_query = "UPDATE purchase SET storage_location = %s WHERE device_id = %s AND purchase_id = %s"
 
-        # 단계 1) 디바이스 ID와 구매 ID가 일치하는 제품 먼저 찾기
         with get_db() as cursor:
+            # 1) 디바이스 ID와 구매 ID가 일치하는 제품 먼저 찾기
             cursor.execute(select_query, (data['device_id'], purchase_id))
             if cursor.fetchone() is None:
                 handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
 
-        # 단계 2) 디바이스 ID와 구매 ID가 일치하는 제품 -> 해당 제품의 보관 장소 업데이트
-        with get_db() as cursor:
+            # 2) 디바이스 ID와 구매 ID가 일치하는 제품 -> 해당 제품의 보관 장소 업데이트
             cursor.execute(update_query, (data['storage_location'], data['device_id'], purchase_id))
         
         return {
