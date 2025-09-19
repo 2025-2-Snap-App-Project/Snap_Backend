@@ -122,45 +122,18 @@ class DateItemResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락")
 
-        try :
-            connection = get_connection()
-
-            query = '''
-                select * from purchase
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['device_id'], purchase_id)
-            cursor = connection.cursor()
-            cursor.execute(query, record)
-
+        select_query = "SELECT * FROM purchase WHERE device_id = %s AND purchase_id = %s"
+        update_query = "UPDATE purchase SET is_favorite = %s WHERE device_id = %s AND purchase_id = %s"
+        
+        with get_db() as cursor:
+            cursor.execute(select_query, (data['device_id'], purchase_id))
             if cursor.fetchone() is None:
                 handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
+        with get_db() as cursor:
+            cursor.execute(update_query, (data['is_favorite'], data['device_id'], purchase_id))
             
-            query = '''
-                UPDATE purchase
-                SET is_favorite = %s
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['is_favorite'], data['device_id'], purchase_id)
-            cursor = connection.cursor()
-            cursor.execute(query, record)
-            connection.commit()
-
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "즐겨찾기 업데이트 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 업데이트할 수 없습니다!")
-        
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
-        
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "즐겨찾기 업데이트 성공"
+        }, 200
