@@ -8,15 +8,13 @@ class UserResource(Resource) :
     # 로그인 ✅
     def post(self) :
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
-        if 'username' not in data:
-            handle_value_error("사용자명 누락")
+        handle_value_error(data, ['device_id', 'username'])
         
         query = "INSERT INTO user (device_id, username) VALUES (%s, %s)"
         record = (data['device_id'], data['username'])
         with get_db() as cursor:
             cursor.execute(query, record)
+        
         return {
             "success" : True,
             "status" : 200,
@@ -26,8 +24,7 @@ class UserResource(Resource) :
     # 회원 탈퇴 ✅
     def delete(self) :
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
+        handle_value_error(data, ['device_id'])
 
         query = "DELETE FROM user WHERE device_id = %s"
         record = (data['device_id'], )
