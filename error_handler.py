@@ -7,12 +7,12 @@ def handle_value_error(msg):
     }, 400
 
 # 400 Bad Request - mysql 무결성 제약조건 위반
-def handle_mysql_integrity_error(e, msg):
+def handle_mysql_integrity_error(e):
     print(e)
     return {
         "error_code" : 400,
         "description" : "Bad Request",
-        "message" : f"{msg} : {str(e)}"
+        "message" : f"데이터 무결성 제약조건 위반 : {str(e)}"
     }, 400
 
 # 415 Unsupported Media Type

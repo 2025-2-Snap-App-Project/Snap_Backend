@@ -4,7 +4,7 @@ from flask_restful import Resource
 import mysql.connector
 import os
 import uuid
-from mysql_connection import get_connection
+from mysql_connection import *
 from google.cloud import vision
 import pathlib
 import textwrap
@@ -115,58 +115,29 @@ class AnalyzeResource(Resource):
         ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
         summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
 
-        try :
-            connection = get_connection()
-            cursor = connection.cursor(dictionary=True)
+        select_query = "SELECT FROM Product WHERE product_name = %s"
+        insert_product_query = "INSERT INTO Product (product_name) VALUES (%s)"
+        insert_item_query = "INSERT INTO ProductItem (product_id, expiration_date, summary, ingredients) VALUES (%s, %s, %s, %s)"
 
-            query1 = '''
-                        select *
-                        from Product
-                        where product_name = %s;
-                    '''
-            record1 = (product_name, )
-            cursor.execute(query1, record1)
-            result_list = cursor.fetchall()
+        with get_db(dictionary=True) as cursor:
+            # 1) 해당 제품명의 레코드가 Product 테이블에 존재하는지 체크
+            cursor.execute(select_query, (product_name, ))
+            result = cursor.fetchone()
 
-            if len(result_list) == 0:
-                query2 = '''
-                        insert into Product (product_name)
-                        values (%s);
-                        '''
-                record2 = (product_name,)
-                cursor.execute(query2, record2)
+            if result is None: # 없는 경우 -> 제품명 신규 등록 & 제품 ID 가져옴
+                cursor.execute(insert_product_query, (product_name,))
                 product_id = cursor.lastrowid
-            else:
-                result = result_list[0]
+            else: # 있는 경우 -> 제품 ID만 가져옴
                 product_id = result['product_id']
 
-            query3 = '''
-                    insert into ProductItem (product_id, expiration_date, summary, ingredients)
-                    values (%s, %s, %s, %s);
-                    '''
-            record3 = (product_id, expiration_date, summary, ingredients)
-            cursor.execute(query3, record3)
+            # 2) ProductItem 테이블에도 제품 정보 저장
+            cursor.execute(insert_item_query, (product_id, expiration_date, summary, ingredients))
             item_id = cursor.lastrowid
             result_dict = {"item_id" : item_id, "product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
-            connection.commit()
-
-            return{
-                "success" : True,
-                "status" : 200,
-                "message" : "요청이 성공적으로 처리되었습니다.",
-                "data" : result_dict
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 저장할 수 없습니다!")
-
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
-        
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "요청이 성공적으로 처리되었습니다.",
+            "data" : result_dict
+        }, 200

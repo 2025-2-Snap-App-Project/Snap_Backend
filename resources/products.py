@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from flask_restful import Resource
 import mysql.connector
-from mysql_connection import get_connection
+from mysql_connection import *
 from error_handler import *
 
 class ProductsResource(Resource):
@@ -15,37 +15,15 @@ class ProductsResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
-        try :
-            connection = get_connection()
-            query = '''
-                    insert into purchase
-                        (purchase_id, device_id, storage_location, is_favorite)
-                    values
-                        (%s,%s,%s,%s);
-                    '''
-            record = (purchase_id, data['device_id'], data['storage_location'], False)
-            cursor = connection.cursor()
+        query = "INSERT INTO purchase (purchase_id, device_id, storage_location, is_favorite) VALUES (%s,%s,%s,%s)"
+        record = (purchase_id, data['device_id'], data['storage_location'], False)
+        with get_db() as cursor:
             cursor.execute(query, record)
-            connection.commit()
-
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "보관 장소 등록 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 저장할 수 없습니다!")
-        
-        except mysql.connector.Error as e :
-            handle_mysql_integrity_error(e)
-
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "보관 장소 등록 성공"
+        }, 200
     
     # 소비기한 - 소비기한 보관 장소 수정 ✅
     def patch(self, purchase_id):
@@ -57,45 +35,20 @@ class ProductsResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
-        try :
-            connection = get_connection()
+        select_query = "SELECT * FROM purchase WHERE device_id = %s AND purchase_id = %s"
+        update_query = "UPDATE purchase SET storage_location = %s WHERE device_id = %s AND purchase_id = %s"
 
-            query = '''
-                select * from purchase
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['device_id'], purchase_id)
-            cursor = connection.cursor()
-            cursor.execute(query, record)
-
+        with get_db() as cursor:
+            # 1) 디바이스 ID와 구매 ID가 일치하는 제품 먼저 찾기
+            cursor.execute(select_query, (data['device_id'], purchase_id))
             if cursor.fetchone() is None:
                 handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
 
-            query = '''
-                UPDATE purchase
-                SET storage_location = %s
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['storage_location'], data['device_id'], purchase_id)
-            cursor = connection.cursor()
-            cursor.execute(query, record)
-            connection.commit()
-
-            return{
-                "success" : True,
-                "status" : 200,
-                "message" : "보관 장소 수정 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 업데이트할 수 없습니다!")
+            # 2) 디바이스 ID와 구매 ID가 일치하는 제품 -> 해당 제품의 보관 장소 업데이트
+            cursor.execute(update_query, (data['storage_location'], data['device_id'], purchase_id))
         
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
-        
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "보관 장소 수정 성공"
+        }, 200
