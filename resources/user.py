@@ -28,38 +28,17 @@ class UserResource(Resource) :
         data = request.get_json()
         if 'device_id' not in data:
             handle_value_error("디바이스 ID 누락")
-        
-        device_id = data.get('device_id')
-        
-        try :
-            connection = get_connection()
-            query = '''
-                    delete from user
-                    where device_id = %s;
-                    '''
-            record = (device_id, )
-            cursor = connection.cursor()
+
+        query = "DELETE FROM user WHERE device_id = %s"
+        record = (data['device_id'], )
+        with get_db() as cursor:
             cursor.execute(query, record)
-            connection.commit()
-
-            if cursor.rowcount == 0:
-                handle_not_found_error("해당 디바이스 ID의 사용자를 찾을 수 없음")
-
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "회원탈퇴 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "회원 탈퇴에 실패했습니다. 다시 시도해주세요.")
-
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
         
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        if cursor.rowcount == 0:
+            handle_not_found_error("해당 디바이스 ID의 사용자를 찾을 수 없음")
+        
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "회원탈퇴 성공"
+        }, 200
