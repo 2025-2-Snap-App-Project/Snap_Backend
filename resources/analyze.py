@@ -122,16 +122,12 @@ class AnalyzeResource(Resource):
         with get_db(dictionary=True) as cursor:
             # 1) 해당 제품명의 레코드가 Product 테이블에 존재하는지 체크
             cursor.execute(select_query, (product_name, ))
-            result_list = cursor.fetchall()
+            result = cursor.fetchone()
 
-            # 1-1) 존재하지 X -> 해당 제품명의 레코드를 Product 테이블에 INSERT
-            if len(result_list) == 0:
+            if result is None: # 없는 경우 -> 제품명 신규 등록 & 제품 ID 가져옴
                 cursor.execute(insert_product_query, (product_name,))
                 product_id = cursor.lastrowid
-
-            # 1-2) 이미 존재 O -> product_id 값만 읽어옴
-            else:
-                result = result_list[0]
+            else: # 있는 경우 -> 제품 ID만 가져옴
                 product_id = result['product_id']
 
             # 2) ProductItem 테이블에도 제품 정보 저장
