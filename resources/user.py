@@ -11,9 +11,8 @@ class UserResource(Resource) :
         handle_value_error(data, ['device_id', 'username'])
         
         query = "INSERT INTO user (device_id, username) VALUES (%s, %s)"
-        record = (data['device_id'], data['username'])
         with get_db() as cursor:
-            cursor.execute(query, record)
+            cursor.execute(query, (data['device_id'], data['username']))
         
         return {
             "success" : True,
@@ -27,9 +26,8 @@ class UserResource(Resource) :
         handle_value_error(data, ['device_id'])
 
         query = "DELETE FROM user WHERE device_id = %s"
-        record = (data['device_id'], )
         with get_db() as cursor:
-            cursor.execute(query, record)
+            cursor.execute(query, (data['device_id'], ))
         
         if cursor.rowcount == 0:
             handle_not_found_error("해당 디바이스 ID의 사용자를 찾을 수 없음")
