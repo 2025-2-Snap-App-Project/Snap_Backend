@@ -129,7 +129,6 @@ class DateItemResource(Resource):
             cursor.execute(select_query, (data['device_id'], purchase_id))
             if cursor.fetchone() is None:
                 handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
-        with get_db() as cursor:
             cursor.execute(update_query, (data['is_favorite'], data['device_id'], purchase_id))
             
         return {
