@@ -119,29 +119,27 @@ class AnalyzeResource(Resource):
         insert_product_query = "INSERT INTO Product (product_name) VALUES (%s)"
         insert_item_query = "INSERT INTO ProductItem (product_id, expiration_date, summary, ingredients) VALUES (%s, %s, %s, %s)"
 
-        # 단계 1) 해당 제품명의 레코드가 Product 테이블에 존재하는지 체크
         with get_db(dictionary=True) as cursor:
+            # 1) 해당 제품명의 레코드가 Product 테이블에 존재하는지 체크
             cursor.execute(select_query, (product_name, ))
             result_list = cursor.fetchall()
 
-        # 존재하지 X -> 해당 제품명의 레코드를 Product 테이블에 INSERT
-        if len(result_list) == 0:
-            with get_db() as cursor:
+            # 1-1) 존재하지 X -> 해당 제품명의 레코드를 Product 테이블에 INSERT
+            if len(result_list) == 0:
                 cursor.execute(insert_product_query, (product_name,))
                 product_id = cursor.lastrowid
 
-        # 이미 존재 O -> product_id 값만 읽어옴
-        else:
-            result = result_list[0]
-            product_id = result['product_id']
+            # 1-2) 이미 존재 O -> product_id 값만 읽어옴
+            else:
+                result = result_list[0]
+                product_id = result['product_id']
 
-        # 단계 2) ProductItem 테이블에도 제품 정보 저장
-        with get_db() as cursor:
+            # 2) ProductItem 테이블에도 제품 정보 저장
             cursor.execute(insert_item_query, (product_id, expiration_date, summary, ingredients))
             item_id = cursor.lastrowid
             result_dict = {"item_id" : item_id, "product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
-        return{
+        return {
             "success" : True,
             "status" : 200,
             "message" : "요청이 성공적으로 처리되었습니다.",
