@@ -1,10 +1,12 @@
 # 400 Bad Request - 필수 파라미터 누락
-def handle_value_error(msg):
-    return {
-        "error_code" : 400,
-        "description" : "Bad Request",
-        "message" : msg
-    }, 400
+def handle_value_error(data, required_fields):
+    for field in required_fields:
+        if field not in data:
+            return {
+                "error_code" : 400,
+                "description" : "Bad Request",
+                "message" : f"{field} 누락"
+            }, 400
 
 # 400 Bad Request - mysql 무결성 제약조건 위반
 def handle_mysql_integrity_error(e):
