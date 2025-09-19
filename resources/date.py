@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from flask_restful import Resource
 import mysql.connector
-from mysql_connection import get_connection
+from mysql_connection import *
 from datetime import datetime
 from error_handler import *
 
@@ -10,60 +10,47 @@ class DateListResource(Resource):
     def get(self):
         device_id = request.args.get('device_id')
         category = request.args.get('category')
-
         if device_id == None:
             handle_value_error("디바이스 ID 누락")
         if category == None:
             handle_value_error("카테고리 구분 누락")
         
-        try:
-            connection = get_connection()
-            query = '''
-                select 
-                    ProductItem.item_id,
-                    Product.product_name,
-                    ProductItem.expiration_date,
-                    Purchase.is_favorite
-                from Purchase
-                join ProductItem on Purchase.purchase_id = ProductItem.item_id
-                join Product on ProductItem.product_id = Product.product_id
-                where Purchase.device_id = %s;
-            '''
-            record = (device_id, )
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute(query, record)
+        query = '''
+            SELECT 
+                ProductItem.item_id,
+                Product.product_name,
+                ProductItem.expiration_date,
+                Purchase.is_favorite
+            FROM Purchase
+            JOIN ProductItem ON Purchase.purchase_id = ProductItem.item_id
+            JOIN Product ON ProductItem.product_id = Product.product_id
+            JOIN Purchase.device_id = %s;
+        '''
+
+        with get_db(dictionary=True) as cursor:
+            cursor.execute(query, (device_id, ))
             result_list = cursor.fetchall()
             filtered_list = []
 
-            for result in result_list:
-                now_date = datetime.now()
-                db_date = datetime.strptime(result['expiration_date'], "%Y%m%d")
-                day_diff = (db_date - now_date).days
-                if category == '날짜지남' and day_diff < 0:
-                    filtered_list.append(result)
-                elif category == '기한임박' and day_diff < 7:
-                    filtered_list.append(result)
-                elif category == '기한여유' and day_diff < 14:
-                    filtered_list.append(result)
-                else:
-                    pass
+        for result in result_list:
+            now_date = datetime.now()
+            db_date = datetime.strptime(result['expiration_date'], "%Y%m%d")
+            day_diff = (db_date - now_date).days
+            if category == '날짜지남' and day_diff < 0:
+                filtered_list.append(result)
+            elif category == '기한임박' and day_diff < 7:
+                filtered_list.append(result)
+            elif category == '기한여유' and day_diff < 14:
+                filtered_list.append(result)
+            else:
+                pass
 
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "리스트 조회 성공",
-                "data" : filtered_list
-            }, 200
-
-        except mysql.connector.Error as e :
-            handle_mysql_integrity_error(e)
-        
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "리스트 조회 성공",
+            "data" : filtered_list
+        }, 200
     
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
