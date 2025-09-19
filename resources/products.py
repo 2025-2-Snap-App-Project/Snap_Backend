@@ -35,45 +35,24 @@ class ProductsResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
-        try :
-            connection = get_connection()
-
-            query = '''
-                select * from purchase
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['device_id'], purchase_id)
-            cursor = connection.cursor()
+        # 단계 1) 디바이스 ID와 구매 ID가 일치하는 제품 먼저 찾기
+        query = "SELECT * FROM purchase WHERE device_id = %s AND purchase_id = %s"
+        record = (data['device_id'], purchase_id)
+        with get_db() as cursor:
             cursor.execute(query, record)
 
-            if cursor.fetchone() is None:
-                handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
+        # 검색된 제품이 없는 경우
+        if cursor.fetchone() is None:
+            handle_not_found_error("해당하는 제품 또는 디바이스 ID를 찾을 수 없습니다.")
 
-            query = '''
-                UPDATE purchase
-                SET storage_location = %s
-                WHERE device_id = %s AND purchase_id = %s
-            '''
-            record = (data['storage_location'], data['device_id'], purchase_id)
-            cursor = connection.cursor()
+        # 단계 2) 디바이스 ID와 구매 ID가 일치하는 제품 -> 해당 제품의 보관 장소 업데이트
+        query = "UPDATE purchase SET storage_location = %s WHERE device_id = %s AND purchase_id = %s"
+        record = (data['storage_location'], data['device_id'], purchase_id)
+        with get_db() as cursor:
             cursor.execute(query, record)
-            connection.commit()
-
-            return{
-                "success" : True,
-                "status" : 200,
-                "message" : "보관 장소 수정 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 업데이트할 수 없습니다!")
         
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
-        
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "보관 장소 수정 성공"
+        }, 200
