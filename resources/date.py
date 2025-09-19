@@ -63,39 +63,17 @@ class DateListResource(Resource):
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_ids')
 
+        query = "DELETE FROM purchase WHERE device_id = %s AND purchase_id = %s"
         for purchase_id in purchase_ids:
-            try :
-                connection = get_connection()
-                query = f'''
-                        delete from purchase
-                        where device_id = %s AND purchase_id = %s;
-                        '''
-                record = (device_id, purchase_id)
-                cursor = connection.cursor(dictionary=True)
-                cursor.execute(query, record)
-                connection.commit()
-
+            with get_db(dictionary=True) as cursor:
+                cursor.execute(query, (device_id, purchase_id))
                 if cursor.rowcount == 0:
                     handle_not_found_error("삭제할 제품을 찾을 수 없음")
-
-                return {
-                    "success" : True,
-                    "status" : 200,
-                    "message" : "제품 삭제 성공"
-                }, 200
-
-            except mysql.connector.errors.IntegrityError as e:
-                handle_mysql_integrity_error(e, "제품을 삭제할 수 없습니다!")
- 
-            except mysql.connector.Error as e :
-                handle_mysql_connect_error(e)
-        
-            except Exception as e :
-                server_error(e)
-
-            finally:
-                cursor.close()
-                connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "제품 삭제 성공"
+        }, 200
     
 class DateItemResource(Resource):
     # 소비기한 - 소비기한 상세 정보 조회 ✅
