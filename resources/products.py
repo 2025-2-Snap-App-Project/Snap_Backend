@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from flask_restful import Resource
 import mysql.connector
-from mysql_connection import get_connection
+from mysql_connection import *
 from error_handler import *
 
 class ProductsResource(Resource):
@@ -15,37 +15,15 @@ class ProductsResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
-        try :
-            connection = get_connection()
-            query = '''
-                    insert into purchase
-                        (purchase_id, device_id, storage_location, is_favorite)
-                    values
-                        (%s,%s,%s,%s);
-                    '''
-            record = (purchase_id, data['device_id'], data['storage_location'], False)
-            cursor = connection.cursor()
+        query = "INSERT INTO purchase (purchase_id, device_id, storage_location, is_favorite) VALUES (%s,%s,%s,%s)"
+        record = (purchase_id, data['device_id'], data['storage_location'], False)
+        with get_db() as cursor:
             cursor.execute(query, record)
-            connection.commit()
-
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "보관 장소 등록 성공"
-            }, 200
-
-        except mysql.connector.errors.IntegrityError as e:
-            handle_mysql_integrity_error(e, "제품 정보를 저장할 수 없습니다!")
-        
-        except mysql.connector.Error as e :
-            handle_mysql_integrity_error(e)
-
-        except Exception as e :
-            server_error(e)
-
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "보관 장소 등록 성공"
+        }, 200
     
     # 소비기한 - 소비기한 보관 장소 수정 ✅
     def patch(self, purchase_id):
