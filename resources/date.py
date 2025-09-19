@@ -84,44 +84,33 @@ class DateItemResource(Resource):
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
-        try:
-            connection = get_connection()
-            query = '''
-                select 
-                    ProductItem.item_id,
-                    Product.product_name,
-                    ProductItem.expiration_date,
-                    Purchase.storage_location,
-                    ProductItem.ingredients,
-                    ProductItem.summary
-                from Purchase
-                join ProductItem on Purchase.purchase_id = ProductItem.item_id
-                join Product on ProductItem.product_id = Product.product_id
-                where Purchase.purchase_id = %s and Purchase.device_id = %s;
-            '''
-            cursor = connection.cursor(dictionary=True)
+        query = '''
+            SELECT 
+                ProductItem.item_id,
+                Product.product_name,
+                ProductItem.expiration_date,
+                Purchase.storage_location,
+                ProductItem.ingredients,
+                ProductItem.summary
+            FROM Purchase
+            JOIN ProductItem ON Purchase.purchase_id = ProductItem.item_id
+            JOIN Product ON ProductItem.product_id = Product.product_id
+            WHERE Purchase.purchase_id = %s AND Purchase.device_id = %s;
+        '''
+
+        with get_db(dictionary=True) as cursor:
             cursor.execute(query, (purchase_id, device_id))
             result = cursor.fetchone()
-
-            if result is None:
-                handle_not_found_error("해당하는 제품을 찾을 수 없습니다.")
-
-            return {
-                "success" : True,
-                "status" : 200,
-                "message" : "상세 조회 성공",
-                "data" : result
-            }, 200
-
-        except mysql.connector.Error as e :
-            handle_mysql_connect_error(e)
         
-        except Exception as e :
-            server_error(e)
+        if result is None:
+            handle_not_found_error("해당하는 제품을 찾을 수 없습니다.")
 
-        finally:
-            cursor.close()
-            connection.close()
+        return {
+            "success" : True,
+            "status" : 200,
+            "message" : "상세 조회 성공",
+            "data" : result
+        }, 200
     
     # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
     def patch(self, purchase_id):
