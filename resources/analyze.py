@@ -31,6 +31,11 @@ def detect_text(path):
     texts = response.text_annotations
     return texts
 
+# txt 파일 생성 함수
+def create_txt_file(path, ocr_text):
+    with open(path, "w") as f:
+        f.write(ocr_text[0].description)
+
 # Gemini 실행 함수
 def gemini_summary(ingredients):
     genai.configure(api_key="YOUR_API_KEY")
@@ -59,6 +64,11 @@ class AnalyzeResource(Resource):
                 img_path = "./image/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
                 ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
+
+                # 텍스트 파일 생성
+                os.makedirs("./text", exist_ok=True)
+                txt_path = "./text/" + img_filename + ".txt" # 텍스트 파일 경로 설정
+                create_txt_file(txt_path, ocr_text)
 
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
