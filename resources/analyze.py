@@ -23,12 +23,13 @@ def allowed_file(filename):
 # OCR 수행 함수
 def detect_text(path):
     client = vision.ImageAnnotatorClient()
-    with open(client, "rb") as image_file:
+    with open(path, "rb") as image_file:
         content = image_file.read()
     
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
-    return response.text_annotations
+    texts = response.text_annotations
+    return texts
 
 # Gemini 실행 함수
 def gemini_summary(ingredients):
