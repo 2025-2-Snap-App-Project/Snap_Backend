@@ -15,6 +15,7 @@ from error_handler import *
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
 
+# 이미지 파일 형식 체크 함수
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -35,7 +36,7 @@ def to_markdown(text):
   return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
 
-# 촬영하기 - 이미지 분석 진행 ✖️
+# 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
     def post(self):
         if 'image[]' not in request.files:
@@ -53,6 +54,10 @@ class AnalyzeResource(Resource):
 
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
+
+        """
+        모델 추론 관련 코드 작성하기
+        """
 
         # OCR 수행 & 모델 추론 이후 출력값 더미 데이터
         product_name = "product_name_sample" # 제품명
