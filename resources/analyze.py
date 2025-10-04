@@ -19,11 +19,6 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# 개별 이미지 크롭 > 이미지 저장
-def crop_and_save(image, bbox, img_path):
-    cropped_img = image.crop(bbox)
-    cropped_img.save(img_path)
-
 # OCR 수행 함수
 def detect_text(path):
     client = vision.ImageAnnotatorClient()
