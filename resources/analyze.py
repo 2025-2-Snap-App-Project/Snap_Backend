@@ -1,16 +1,9 @@
-from flask import request, jsonify
-from flask import json
+from flask import request
 from flask_restful import Resource
 import os
 import uuid
 from google.cloud import vision
-import pathlib
-import textwrap
-
 import google.generativeai as genai
-
-from IPython.display import display
-from IPython.display import Markdown
 from error_handler import *
 from config import settings
 
