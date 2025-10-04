@@ -67,15 +67,15 @@ class AnalyzeResource(Resource):
         """
 
         # OCR 수행 & 모델 추론 이후 출력값 더미 데이터
-        product_name = "product_name_sample" # 제품명
+        product_name = "초코파이" # 제품명
         expiration_date = "20200101" # 소비기한
-        ingredients = "ingredients_sample" # 원재료명
+        ingredients = "밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제), 밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제),밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제)" # 원재료명
 
         # 생성형 AI 실행
         summary = gemini_summary(ingredients)
 
        # 생성형 AI API 실행 이후 출력값 더미 데이터 
-        summary = "summary_sample" # 요약 및 정리
+        summary = "이 제품은 밀가루, 마시멜로, 식물성 유지(팜유), 설탕을 주재료로 사용한 과자류로 보입니다. 특히, 밀가루와 설탕이 가장 많이 함유되어 있으며, 전란액과 코코아분말이 들어 있어 부드러운 식감에 초코 맛이 더해진 형태일 가능성이 높습니다." # 요약 및 정리
 
         result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
