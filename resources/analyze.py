@@ -47,28 +47,15 @@ class AnalyzeResource(Resource):
                 handle_value_error("이미지 누락")
         
         images = request.files.getlist("image[]")
-        os.makedirs("./image/original", exist_ok=True)
-        os.makedirs("./image/name/", exist_ok=True)
-        os.makedirs("./image/ingredients/", exist_ok=True)
-        os.makedirs("./image/date/", exist_ok=True)
+        os.makedirs("./image", exist_ok=True)
 
         # 이미지 크롭 > 이미지 저장 > OCR 수행
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-                name_path = "./cropped/name/" + img_filename + ".jpg"
-                ingredients_path = "./cropped/ingredients/" + img_filename + ".jpg"
-                date_path = "./cropped/date/" + img_filename + ".jpg"
-
-                # 개별 bbox 이미지 크롭 > 크롭된 이미지 저장
-                crop_and_save(image, name_bbox, name_path) # 제품명
-                crop_and_save(image, ingredients_bbox, ingredients_path) # 원재료명
-                crop_and_save(image, date_bbox, img_filename) # 소비기한
-
-                # OCR 수행 > 출력값을 개별 변수에 저장
-                product_name = detect_text(name_path) # 제품명
-                ingredients = detect_text(ingredients_path) # 원재료명
-                expiration_date = detect_text(date_path) # 소비기한
+                img_path = "./image/" + img_filename + ".jpg" # 이미지 경로 설정
+                image.save(img_path) # 이미지 저장
+                ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
 
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
