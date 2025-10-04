@@ -8,10 +8,8 @@ class ProductsResource(Resource):
     # 촬영하기 - 제품 보관하기 ✅
     def post(self, purchase_id):
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
-        if 'storage_location' not in data:
-            handle_value_error("보관 장소 누락")
+        handle_value_error(data, ['device_id', 'storage_location'])
+
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 
@@ -28,10 +26,8 @@ class ProductsResource(Resource):
     # 소비기한 - 소비기한 보관 장소 수정 ✅
     def patch(self, purchase_id):
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
-        if 'storage_location' not in data:
-            handle_value_error("보관 장소 누락")
+        handle_value_error(data, ['device_id', 'storage_location'])
+
         if purchase_id == None :
             handle_value_error("구매 ID 누락") 
 

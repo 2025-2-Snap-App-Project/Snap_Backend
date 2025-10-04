@@ -55,10 +55,7 @@ class DateListResource(Resource):
     # 소비기한 - 소비기한 특정 제품 삭제 ✅
     def delete(self):
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
-        if 'purchase_ids' not in data:
-            handle_value_error("구매 ID 누락")
+        handle_value_error(data, ['device_id', 'purchase_ids'])
 
         device_id = data.get('device_id')
         purchase_ids = data.get('purchase_ids')
@@ -115,10 +112,7 @@ class DateItemResource(Resource):
     # 소비기한 - 소비기한 즐겨찾기 업데이트 ✅
     def patch(self, purchase_id):
         data = request.get_json()
-        if 'device_id' not in data:
-            handle_value_error("디바이스 ID 누락")
-        if 'is_favorite' not in data:
-            handle_value_error("즐겨찾기 여부 누락")
+        handle_value_error(data, ['device_id', 'is_favorite'])
         if purchase_id == None :
             handle_value_error("구매 ID 누락")
 
