@@ -42,7 +42,7 @@ def gemini_summary(ingredients):
     genai.configure(api_key=settings.google_api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
     response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
-    return to_markdown(response.text)
+    return response
 
 # Markdown 텍스트 표시 함수
 def to_markdown(text):
