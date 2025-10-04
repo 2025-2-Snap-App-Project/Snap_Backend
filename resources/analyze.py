@@ -60,17 +60,18 @@ class AnalyzeResource(Resource):
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
-        # 생성형 AI 실행
-        genai.configure(api_key="YOUR_API_KEY")
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
-        summary = to_markdown(response.text)
-
         # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
         # OCR 수행 & 생성형 AI API 실행 이후 출력값 더미 데이터
         product_name = "product_name_sample" # OCR 수행 이후 출력값 - 제품명
         expiration_date = "20200101" # OCR 수행 이후 출력값 - 소비기한
         ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
+
+        # 생성형 AI 실행
+        genai.configure(api_key="YOUR_API_KEY")
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
+        summary = to_markdown(response.text)
+        
         summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
 
         result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
