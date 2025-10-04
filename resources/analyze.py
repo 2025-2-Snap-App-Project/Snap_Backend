@@ -44,12 +44,6 @@ def gemini_summary(ingredients):
     response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
     return response
 
-# Markdown 텍스트 표시 함수
-def to_markdown(text):
-  text = text.replace('•', '  *')
-  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
-
-
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
     def post(self):
