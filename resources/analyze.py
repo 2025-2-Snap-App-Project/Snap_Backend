@@ -1,10 +1,8 @@
 from flask import request, jsonify
 from flask import json
 from flask_restful import Resource
-import mysql.connector
 import os
 import uuid
-from mysql_connection import *
 from google.cloud import vision
 import pathlib
 import textwrap
@@ -115,26 +113,7 @@ class AnalyzeResource(Resource):
         ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
         summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
 
-        select_query = "SELECT FROM Product WHERE product_name = %s"
-        insert_product_query = "INSERT INTO Product (product_name) VALUES (%s)"
-        insert_item_query = "INSERT INTO ProductItem (product_id, expiration_date, summary, ingredients) VALUES (%s, %s, %s, %s)"
-
-        with get_db(dictionary=True) as cursor:
-            # 1) 해당 제품명의 레코드가 Product 테이블에 존재하는지 체크
-            cursor.execute(select_query, (product_name, ))
-            result = cursor.fetchone()
-
-            if result is None: # 없는 경우 -> 제품명 신규 등록 & 제품 ID 가져옴
-                cursor.execute(insert_product_query, (product_name,))
-                product_id = cursor.lastrowid
-            else: # 있는 경우 -> 제품 ID만 가져옴
-                product_id = result['product_id']
-
-            # 2) ProductItem 테이블에도 제품 정보 저장
-            cursor.execute(insert_item_query, (product_id, expiration_date, summary, ingredients))
-            item_id = cursor.lastrowid
-            result_dict = {"item_id" : item_id, "product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
-
+        result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
         return {
             "success" : True,
             "status" : 200,
