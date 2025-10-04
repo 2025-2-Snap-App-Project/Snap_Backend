@@ -12,8 +12,9 @@ import google.generativeai as genai
 from IPython.display import display
 from IPython.display import Markdown
 from error_handler import *
+from config import settings
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./파일명.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.google_application_credentials
 
 # 이미지 파일 형식 체크 함수
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
@@ -38,7 +39,7 @@ def create_txt_file(path, ocr_text):
 
 # Gemini 실행 함수
 def gemini_summary(ingredients):
-    genai.configure(api_key="YOUR_API_KEY")
+    genai.configure(api_key=settings.google_api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
     response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
     return to_markdown(response.text)
