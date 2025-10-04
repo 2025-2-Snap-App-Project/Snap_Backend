@@ -49,7 +49,6 @@ class AnalyzeResource(Resource):
         images = request.files.getlist("image[]")
         os.makedirs("./image", exist_ok=True)
 
-        # 이미지 크롭 > 이미지 저장 > OCR 수행
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
@@ -60,21 +59,22 @@ class AnalyzeResource(Resource):
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
-        # 응답 데이터 일부 ("YOLO 탐지 + OCR 수행 + 생성형 AI API 실행" 후 출력되는 값) 임의값 설정
-        # OCR 수행 & 생성형 AI API 실행 이후 출력값 더미 데이터
-        product_name = "product_name_sample" # OCR 수행 이후 출력값 - 제품명
-        expiration_date = "20200101" # OCR 수행 이후 출력값 - 소비기한
-        ingredients = "ingredients_sample" # OCR 수행 이후 출력값 - 원재료명
+        # OCR 수행 & 모델 추론 이후 출력값 더미 데이터
+        product_name = "product_name_sample" # 제품명
+        expiration_date = "20200101" # 소비기한
+        ingredients = "ingredients_sample" # 원재료명
 
         # 생성형 AI 실행
         genai.configure(api_key="YOUR_API_KEY")
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
         summary = to_markdown(response.text)
-        
-        summary = "summary_sample" # 원재료명 값을 생성형 AI에 입력으로 넣어서 출력된 값 - 요약
+
+       # 생성형 AI API 실행 이후 출력값 더미 데이터 
+        summary = "summary_sample" # 요약 및 정리
 
         result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
+
         return {
             "success" : True,
             "status" : 200,
