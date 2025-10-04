@@ -55,7 +55,7 @@ class AnalyzeResource(Resource):
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-                img_path = "./image/" + img_filename + ".jpg" # 이미지 경로 설정
+                img_path = "./image/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
                 ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
 
