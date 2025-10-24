@@ -40,10 +40,10 @@ def gemini_summary(ingredients):
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
     def post(self):
-        if 'image[]' not in request.files:
+        if 'images' not in request.files:
                 handle_value_error("이미지 누락")
         
-        images = request.files.getlist("image[]")
+        images = request.files.getlist("images")
         os.makedirs("./image", exist_ok=True)
 
         for image in images:
