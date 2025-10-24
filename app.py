@@ -21,4 +21,4 @@ api.add_resource(AnalyzeResource, "/analyze") # 촬영하기 - 이미지 분석 
 # ----------------------------
 # 서버 실행
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=True)
