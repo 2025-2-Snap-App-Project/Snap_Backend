@@ -40,16 +40,16 @@ def gemini_summary(ingredients):
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
     def post(self):
-        if 'images' not in request.files:
+        if 'images[]' not in request.files:
                 handle_value_error("이미지 누락")
         
-        images = request.files.getlist("images")
-        os.makedirs("./image", exist_ok=True)
+        images = request.files.getlist("images[]")
+        os.makedirs("./images", exist_ok=True)
 
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-                img_path = "./image/" + img_filename + ".png" # 이미지 경로 설정
+                img_path = "./images/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
                 ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
 
