@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 import os
 import uuid
+import json
 from google.cloud import vision
 import google.generativeai as genai
 from error_handler import *
@@ -31,11 +32,40 @@ def create_txt_file(path, ocr_text):
         f.write(ocr_text[0].description)
 
 # Gemini 실행 함수
-def gemini_summary(ingredients):
+def gemini_summary(ocr_text: str):
     genai.configure(api_key=settings.google_api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
-    response = model.generate_content(f"원재료명을 본 뒤에, 아래 내용을 요약 설명해줘.\n1.제품의 특징 및 주재료\n2.알레르기 유발 성분\n3.주의해야 할 첨가물을 설명해줘.\n\n원재료명 : {ingredients}", stream=True)
-    return response
+
+    prompt = f"""
+    아래는 식품 라벨 OCR 결과입니다. 불필요한 텍스트가 포함되어 있을 수 있습니다.
+    이 텍스트를 분석하여 다음 형식의 JSON만 반환하세요.
+
+    {{
+      "product_name": "제품명 (string)",
+      "expiration_date": "유통기한 (YYYY.MM.DD 형식)",
+      "ingredients": "원재료명 전체 문자열",
+      "summary": [
+        "이 제품의 요약 설명 1",
+        "이 제품의 요약 설명 2",
+        "..."
+      ]
+    }}
+
+    **주의사항:**
+    - 반드시 JSON 형식만 반환하세요 (텍스트나 설명 절대 금지)
+    - summary는 리스트 형태여야 합니다.
+    - 불필요한 문장은 제거하세요.
+    - 값이 불확실하면 null로 채우세요.
+
+    OCR 결과:
+    {ocr_text}
+    """
+
+    response = model.generate_content(prompt)
+    raw_output = response.text.strip()
+    result = json.loads(raw_output)
+
+    return result
 
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
@@ -61,28 +91,14 @@ class AnalyzeResource(Resource):
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
+        # OCR 수행 이후 출력값 더미 데이터
+        dummy_txt = """
+        초코파이, 2020.01.01, 밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말,
+        정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제)
         """
-        모델 추론 관련 코드 작성하기
-        """
-
-        # OCR 수행 & 모델 추론 이후 출력값 더미 데이터
-        product_name = "초코파이" # 제품명
-        expiration_date = "2020.01.01" # 소비기한
-        ingredients = "밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제), 밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제),밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제)" # 원재료명
 
         # 생성형 AI 실행
-        summary = gemini_summary(ingredients)
-
-       # 생성형 AI API 실행 이후 출력값 더미 데이터 
-        summary = [
-            "이 제품은 **닭가슴살**을 주재료로 한 가공식품입니다. 전반적으로 단백질이 풍부하지만, **몇 가지 주의할 점**이 있습니다.",
-            "1. **대두(콩)**과 **밀**은 대표적인 알레르기 유발 성분입니다.",
-            "2. **혼합제제(폴리인산나트륨, 피로인산나트륨)**는 가공식품에서 보존성과 조직감을 높이기 위한 첨가물로, 과도한 섭취 시 신장 건강에 영향을 줄 수 있습니다.",
-            "3. **L-글루타민산나트륨(MSG)**는 감칠맛을 내는 조미료로, 일반적으로 안전하지만, 일부 민감한 사람에게는 두통 등을 유발할 수 있습니다.",
-        ]
-
-        result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
-
+        result_dict = gemini_summary(dummy_txt)
         return {
             "success" : True,
             "status" : 200,
