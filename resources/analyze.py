@@ -3,6 +3,7 @@ from flask_restful import Resource
 import os
 import uuid
 import json
+import re
 from google.cloud import vision
 import google.generativeai as genai
 from error_handler import *
@@ -63,8 +64,9 @@ def gemini_summary(ocr_text: str):
     """
     try: # Gemini 응답 생성
         response = model.generate_content(prompt)
-        print(response.text)
-        return response.text
+        cleaned_txt = re.sub(r"```json|```", "", response.text).strip()
+        print(cleaned_txt)
+        return json.loads(cleaned_txt)
     except Exception as e: # Gemini 응답 에러 처리
         print("다른 에러:", e)
         return {
