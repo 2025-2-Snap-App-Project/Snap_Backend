@@ -8,8 +8,6 @@ import google.generativeai as genai
 from error_handler import *
 from config import settings
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.google_application_credentials
-
 # 이미지 파일 형식 체크 함수
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 def allowed_file(filename):
