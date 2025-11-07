@@ -84,21 +84,24 @@ class AnalyzeResource(Resource):
         images = request.files.getlist("images[]")
         os.makedirs("./images", exist_ok=True)
 
-        for image in images:
+        ocr_texts = [] # OCR 결과 리스트
+
+        for image in images: # 전송된 모든 이미지에 대해 OCR 수행
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
                 img_path = "./images/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
-                raw_txt = detect_text(img_path) # 전체 이미지 OCR 수행
 
-                ocr_txt = raw_txt[0].description
-                print(ocr_txt) # OCR 수행 결과 로그로 출력
-                
-                result_dict = gemini_summary(ocr_txt) # Gemini 실행
+                # OCR 수행
+                raw_txt = detect_text(img_path)
+                ocr_texts.append(raw_txt[0].description) # OCR 결과를 list에 추가
 
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
-        
+
+        combined_ocr = "\n".join(ocr_texts) # OCR 결과를 하나로 통합
+        result_dict = gemini_summary(combined_ocr) # Gemini 실행 (하나로 통합된 OCR 결과를 프롬프트로 입력)    
+
         return {
             "success" : True,
             "status" : 200,
