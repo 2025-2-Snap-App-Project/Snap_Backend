@@ -40,16 +40,16 @@ def gemini_summary(ingredients):
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
     def post(self):
-        if 'image[]' not in request.files:
+        if 'images[]' not in request.files:
                 handle_value_error("이미지 누락")
         
-        images = request.files.getlist("image[]")
-        os.makedirs("./image", exist_ok=True)
+        images = request.files.getlist("images[]")
+        os.makedirs("./images", exist_ok=True)
 
         for image in images:
             if image and allowed_file(image.filename):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-                img_path = "./image/" + img_filename + ".png" # 이미지 경로 설정
+                img_path = "./images/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
                 ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
 
@@ -67,14 +67,19 @@ class AnalyzeResource(Resource):
 
         # OCR 수행 & 모델 추론 이후 출력값 더미 데이터
         product_name = "초코파이" # 제품명
-        expiration_date = "20200101" # 소비기한
+        expiration_date = "2020.01.01" # 소비기한
         ingredients = "밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제), 밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제),밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말, 정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제)" # 원재료명
 
         # 생성형 AI 실행
         summary = gemini_summary(ingredients)
 
        # 생성형 AI API 실행 이후 출력값 더미 데이터 
-        summary = "이 제품은 밀가루, 마시멜로, 식물성 유지(팜유), 설탕을 주재료로 사용한 과자류로 보입니다. 특히, 밀가루와 설탕이 가장 많이 함유되어 있으며, 전란액과 코코아분말이 들어 있어 부드러운 식감에 초코 맛이 더해진 형태일 가능성이 높습니다." # 요약 및 정리
+        summary = [
+            "이 제품은 **닭가슴살**을 주재료로 한 가공식품입니다. 전반적으로 단백질이 풍부하지만, **몇 가지 주의할 점**이 있습니다.",
+            "1. **대두(콩)**과 **밀**은 대표적인 알레르기 유발 성분입니다.",
+            "2. **혼합제제(폴리인산나트륨, 피로인산나트륨)**는 가공식품에서 보존성과 조직감을 높이기 위한 첨가물로, 과도한 섭취 시 신장 건강에 영향을 줄 수 있습니다.",
+            "3. **L-글루타민산나트륨(MSG)**는 감칠맛을 내는 조미료로, 일반적으로 안전하지만, 일부 민감한 사람에게는 두통 등을 유발할 수 있습니다.",
+        ]
 
         result_dict = {"product_name" : product_name, "expiration_date" : expiration_date, "ingredients" : ingredients, "summary" : summary }
 
