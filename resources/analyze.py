@@ -58,12 +58,15 @@ def gemini_summary(ocr_text: str):
     OCR 결과:
     {ocr_text}
     """
-
-    response = model.generate_content(prompt)
-    raw_output = response.text.strip()
-    result = json.loads(raw_output)
-
-    return result
+    try: # Gemini 응답 생성 -> json으로 반환
+        response = model.generate_content(prompt)
+        raw_output = response.text.strip()
+        result = json.loads(raw_output)
+        return result
+    except json.JSONDecodeError: # Gemini 응답 에러 처리
+        print("응답 내용:", response.text)
+    except Exception as e: # Gemini 응답 에러 처리
+        print("다른 에러:", e)
 
 # 촬영하기 - 이미지 분석 진행
 class AnalyzeResource(Resource):
