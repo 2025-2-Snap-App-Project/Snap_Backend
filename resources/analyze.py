@@ -64,7 +64,6 @@ def gemini_summary(ocr_text: str):
     try: # Gemini 응답 생성
         response = model.generate_content(prompt)
         cleaned_txt = re.sub(r"```json|```", "", response.text).strip()
-        print(cleaned_txt)
         return json.loads(cleaned_txt)
     except Exception as e: # Gemini 응답 에러 처리
         print("다른 에러:", e)
@@ -100,7 +99,10 @@ class AnalyzeResource(Resource):
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
         combined_ocr = "\n".join(ocr_texts) # OCR 결과를 하나로 통합
-        result_dict = gemini_summary(combined_ocr) # Gemini 실행 (하나로 통합된 OCR 결과를 프롬프트로 입력)    
+        print(combined_ocr) # 하나로 통합된 OCR 결과를 로그 출력
+
+        result_dict = gemini_summary(combined_ocr) # Gemini 실행 (하나로 통합된 OCR 결과를 프롬프트로 입력)
+        print(result_dict) # Gemini 답변 생성 결과를 로그 출력
 
         return {
             "success" : True,
