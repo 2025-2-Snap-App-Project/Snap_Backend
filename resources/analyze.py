@@ -89,20 +89,16 @@ class AnalyzeResource(Resource):
                 img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
                 img_path = "./images/" + img_filename + ".png" # 이미지 경로 설정
                 image.save(img_path) # 이미지 저장
-                ocr_text = detect_text(img_path) # 전체 이미지 OCR 수행
-                print(ocr_text[0].description) # OCR 수행 결과 로그로 출력
+                raw_txt = detect_text(img_path) # 전체 이미지 OCR 수행
+
+                ocr_txt = raw_txt[0].description
+                print(ocr_txt) # OCR 수행 결과 로그로 출력
+                
+                result_dict = gemini_summary(ocr_txt) # Gemini 실행
 
             else:
                 handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
-
-        # OCR 수행 이후 출력값 더미 데이터
-        dummy_txt = """
-        초코파이, 2020.01.01, 밀가루(밀:미국산,호주산), 마시멜로(물엿, 설탕, 젤라틴), 식물성유지(팜유), 설탕, 전란액, 코코아분말,
-        정제소금, 합성착향료(바닐린), 탄산수소나트륨(팽창제)
-        """
-
-        # 생성형 AI 실행
-        result_dict = gemini_summary(dummy_txt)
+        
         return {
             "success" : True,
             "status" : 200,
