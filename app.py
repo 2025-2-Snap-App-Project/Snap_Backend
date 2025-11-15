@@ -3,16 +3,9 @@
 # 2. cd scripts
 # 3. activate.bat
 
-from flask import Flask, request, jsonify
+from flask import Flask
 from flask_restful import Api
 from resources.analyze import AnalyzeResource
-
-from ultralytics import YOLO
-from PIL import Image
-import io
-import os
-from google.cloud import vision
-import uuid
 
 # ----------------------------
 # Flask 앱 생성
