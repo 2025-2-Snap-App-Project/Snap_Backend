@@ -1,4 +1,8 @@
-# .\venv\Scripts\activate 로 venv 활성화
+# 가상환경 활성화 방법
+# 1. cd venv
+# 2. cd scripts
+# 3. activate.bat
+
 from flask import Flask, request, jsonify
 from flask_restful import Api
 from resources.analyze import AnalyzeResource
