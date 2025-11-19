@@ -24,16 +24,16 @@ def detect_text(path):
     texts = response.text_annotations
     return texts[0].descriptions
 
-# 촬영하기 - 실시간 제품명 안내
-class RealTimeResource(Resource):
+# 촬영하기 - 제품명 안내
+class ProductNameResource(Resource):
     def post(self):
         if 'images' not in request.files:
                 handle_value_error("이미지 누락")
-        image = request.files.get("real_time")
+        image = request.files.get("image")
 
         if image and allowed_file(image.filename):
             img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-            img_path = "./real_time/" + img_filename + ".png" # 이미지 경로 설정
+            img_path = "./name/" + img_filename + ".png" # 이미지 경로 설정
             image.save(img_path) # 이미지 저장
 
             # OCR 수행
