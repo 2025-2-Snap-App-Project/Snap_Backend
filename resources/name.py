@@ -27,8 +27,8 @@ def detect_text(path):
 # 촬영하기 - 제품명 안내
 class ProductNameResource(Resource):
     def post(self):
-        if 'images' not in request.files:
-                handle_value_error("이미지 누락")
+        if 'image' not in request.files:
+            handle_value_error("이미지 누락")
         image = request.files.get("image")
         os.makedirs("./name", exist_ok=True)
 
