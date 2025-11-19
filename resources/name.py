@@ -30,6 +30,7 @@ class ProductNameResource(Resource):
         if 'images' not in request.files:
                 handle_value_error("이미지 누락")
         image = request.files.get("image")
+        os.makedirs("./name", exist_ok=True)
 
         if image and allowed_file(image.filename):
             img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
