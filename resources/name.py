@@ -22,7 +22,7 @@ def detect_text(path):
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
     texts = response.text_annotations
-    return texts[0].descriptions
+    return texts
 
 # 촬영하기 - 제품명 안내
 class ProductNameResource(Resource):
@@ -41,15 +41,14 @@ class ProductNameResource(Resource):
 
             # OCR 수행
             ocr_result = detect_text(img_path)
+            print(ocr_result[0].description) # OCR 결과 출력
         else:
             handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
-
-        print(ocr_result) # OCR 결과 출력
-
+            
         return {
             "success" : True,
             "status" : 200,
             "message" : "요청이 성공적으로 처리되었습니다.",
-            "product_name" : ocr_result
+            "product_name" : ocr_result[0].description
         }, 200
 
