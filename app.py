@@ -1,14 +1,11 @@
-# .\venv\Scripts\activate 로 venv 활성화
-from flask import Flask, request, jsonify
+# 가상환경 활성화 방법
+# 1. cd venv
+# 2. cd scripts
+# 3. activate.bat
+
+from flask import Flask
 from flask_restful import Api
 from resources.analyze import AnalyzeResource
-
-from ultralytics import YOLO
-from PIL import Image
-import io
-import os
-from google.cloud import vision
-import uuid
 
 # ----------------------------
 # Flask 앱 생성
