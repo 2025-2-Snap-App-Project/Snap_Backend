@@ -40,8 +40,9 @@ class ProductNameResource(Resource):
             image.save(img_path) # 이미지 저장
 
             # OCR 수행
-            ocr_result = detect_text(img_path)
-            print(ocr_result[0].description) # OCR 결과 출력
+            raw_txt = detect_text(img_path)
+            ocr_result = raw_txt[0].description.replace("\n", " ") # OCR API 호출한 뒤, 후처리
+            print(ocr_result) # OCR 결과 출력
         else:
             handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
             
@@ -49,6 +50,6 @@ class ProductNameResource(Resource):
             "success" : True,
             "status" : 200,
             "message" : "요청이 성공적으로 처리되었습니다.",
-            "product_name" : ocr_result[0].description
+            "product_name" : ocr_result
         }, 200
 
