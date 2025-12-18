@@ -4,6 +4,7 @@ import os
 import uuid
 import json
 import re
+import tempfile
 from google.cloud import vision
 import google.generativeai as genai
 from error_handler import *
@@ -90,22 +91,21 @@ class AnalyzeResource(Resource):
                 handle_value_error("이미지 누락")
         
         images = request.files.getlist("images[]")
-        os.makedirs("./images", exist_ok=True)
-
         ocr_texts = [] # OCR 결과 리스트
 
-        for image in images: # 전송된 모든 이미지에 대해 OCR 수행
-            if image and allowed_file(image.filename):
-                img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-                img_path = "./images/" + img_filename + ".png" # 이미지 경로 설정
-                image.save(img_path) # 이미지 저장
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for image in images: # 전송된 모든 이미지에 대해 OCR 수행
+                if image and allowed_file(image.filename):
+                    img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
+                    img_path = temp_dir + "/" + img_filename + ".png" # 이미지 경로 설정
+                    image.save(img_path) # 이미지 저장
 
-                # OCR 수행
-                raw_txt = detect_text(img_path)
-                ocr_texts.append(raw_txt[0].description) # OCR 결과를 list에 추가
+                    # OCR 수행
+                    raw_txt = detect_text(img_path)
+                    ocr_texts.append(raw_txt[0].description) # OCR 결과를 list에 추가
 
-            else:
-                handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
+                else:
+                    handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
 
         combined_ocr = "\n".join(ocr_texts) # OCR 결과를 하나로 통합
         print(combined_ocr) # 하나로 통합된 OCR 결과를 로그 출력
