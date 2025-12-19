@@ -99,6 +99,7 @@ class AnalyzeResource(Resource):
                     img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
                     img_path = temp_dir + "/" + img_filename + ".png" # 이미지 경로 설정
                     image.save(img_path) # 이미지 저장
+                    print(img_path) # 이미지 경로 확인
 
                     # OCR 수행
                     raw_txt = detect_text(img_path)
