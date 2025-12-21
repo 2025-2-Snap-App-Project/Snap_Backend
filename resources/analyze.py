@@ -40,7 +40,6 @@ def gemini_summary(ocr_text: str):
 
     {{
       "product_name": "제품명 (string)",
-      "expiration_date": "유통기한 (YYYY.MM.DD 형식)",
       "ingredients": "원재료명 전체 문자열",
       "summary": [
         "1. 원재료명에 대한 요약 설명",
@@ -79,7 +78,6 @@ def gemini_summary(ocr_text: str):
         print("다른 에러:", e)
         return {
             "product_name": None,
-            "expiration_date": None,
             "ingredients": None,
             "summary": []
         }
