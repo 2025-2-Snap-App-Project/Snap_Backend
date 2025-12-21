@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 import os
 import uuid
+import tempfile
 from google.cloud import vision
 from error_handler import *
 from config import settings
@@ -32,19 +33,19 @@ class ProductNameResource(Resource):
         if 'image' not in request.files:
             handle_value_error("이미지 누락")
         image = request.files.get("image")
-        os.makedirs("./name", exist_ok=True)
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            if image and allowed_file(image.filename):
+                img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
+                img_path = temp_dir + "/" + img_filename + ".png" # 이미지 경로 설정
+                image.save(img_path) # 이미지 저장
 
-        if image and allowed_file(image.filename):
-            img_filename = str(uuid.uuid1()) # 개별 이미지 파일명 설정
-            img_path = "./name/" + img_filename + ".png" # 이미지 경로 설정
-            image.save(img_path) # 이미지 저장
-
-            # OCR 수행
-            raw_txt = detect_text(img_path)
-            ocr_result = raw_txt[0].description.replace("\n", " ") # OCR API 호출한 뒤, 후처리
-            print(ocr_result) # OCR 결과 출력
-        else:
-            handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
+                # OCR 수행
+                raw_txt = detect_text(img_path)
+                ocr_result = raw_txt[0].description.replace("\n", " ") # OCR API 호출한 뒤, 후처리
+                print(ocr_result) # OCR 결과 출력
+            else:
+                handle_media_type_error("지원하지 않는 이미지 형식이 포함되어 있습니다.")
             
         return {
             "success" : True,
